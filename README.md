@@ -136,10 +136,13 @@ npm run dev        # dev server at http://localhost:5173
     ├── content.js          # Email, nav links, social links, enquiry topics
     ├── index.css           # Design tokens, base styles, shared utilities
     ├── hooks/
+    │   ├── interactions.js # 3D tilt + glare for cards, magnetic buttons
     │   ├── useReveal.js    # Fades sections in as they scroll into view
     │   └── useScrollSpy.js # Highlights the nav link for the current section
     ├── three/              # WebGL scenes (loaded only when needed)
-    │   ├── RibbonCanvas.jsx # Hero: twisting ribbon of cards + floating labels
+    │   ├── strands.js       # Light-strand field (shaders): fibres, haze, dust, cursor
+    │   ├── StrandsBackground.jsx # Fixed page background; strand pose morphs per section
+    │   ├── RibbonCanvas.jsx # Hero: glass card ribbon refracting the strands
     │   ├── StoryCanvas.jsx  # Process: liquid → board → cards land → launch
     │   ├── palette.js       # 3D colours for light and dark
     │   ├── textures.js      # Canvas-drawn board and card UI textures
@@ -149,6 +152,9 @@ npm run dev        # dev server at http://localhost:5173
         ├── Nav             # Fixed glass nav, scroll-spy, theme toggle, mobile menu
         ├── Hero            # "Ideas to Impact." over the 3D card ribbon
         ├── Story           # Pinned, scroll-driven 3D process (Discover → Launch)
+        ├── Marquee         # Two crossing bands that speed up with scroll
+        ├── Words.jsx       # Word-by-word heading reveal
+        ├── CountUp.jsx     # Stats that count up on first view
         ├── About           # Story, arch illustration and stats
         ├── Services        # Four service cards with pointer-following glow
         ├── Work            # Horizontally scrolling project carousel
@@ -171,11 +177,13 @@ Most copy lives right next to the component that renders it, in a constant at th
 | Projects in the carousel | `PROJECTS` in `src/components/Work.jsx` |
 | Process steps | `STAGES` in `src/components/Story.jsx` |
 | 3D scene colours | `src/three/palette.js` |
+| Light-strand pose per section | `STRAND_SHAPES` in `src/three/strands.js` |
+| Marquee words | `LIME` / `GLASS` in `src/components/Marquee.jsx` |
 | Principle quotes and toolkit | `PRINCIPLES` and `TOOLKIT` in `src/components/Principles.jsx` |
 | About-section stats | `STATS` in `src/components/About.jsx` |
 | Page title and meta description | `inde### Brand & theming
 
-**Palette — "Eternal flame"**: a green flame burning on a marble column in the dark. The site ships a **dark** theme (night + flame) and a **light** theme (marble), follows the visitor's OS setting until they use the sun/moon toggle in the nav, and remembers the choice. Everything is **glassmorphic**: frosted panels (`.glass`) over slowly drifting flame glows, and the 3D ribbon, board, cubes and task cards are real refractive glass bending a flame-coloured light field.
+**Palette — "Eternal flame"**: a green flame burning on a marble column in the dark. The site ships a **dark** theme (night + flame) and a **light** theme (marble), follows the visitor's OS setting until they use the sun/moon toggle in the nav, and remembers the choice. Everything is **glassmorphic**: frosted panels (`.glass`) float over a living background of **light strands** — hundreds of glowing fibres that converge in a hot focal point, ripple, shed dust, bend around the cursor, and change pose from section to section as you scroll. The 3D ribbon, board, cubes and task cards are real refractive glass bending that light.
 
 | | Colour | Hex | Use |
 |:-:|---|---|---|

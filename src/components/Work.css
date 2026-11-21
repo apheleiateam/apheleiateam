@@ -1,12 +1,4 @@
 .work-section { overflow: hidden; }
-.work-section__silk {
-  position: absolute;
-  left: 0;
-  top: 8%;
-  height: 80%;
-  opacity: 0.35;
-  transform: scaleX(-1);
-}
 .work-section .container { position: relative; }
 
 .work {
@@ -47,7 +39,7 @@
   scroll-snap-align: start;
   transition: transform 0.45s var(--ease), border-color 0.45s;
 }
-.project:hover { transform: translateY(-4px); border-color: rgb(var(--accent-rgb) / 0.5); }
+.project:hover { --lift: -4px; border-color: rgb(var(--accent-rgb) / 0.5); }
 
 .project__art { position: absolute; inset: 0; z-index: -2; display: block; }
 .project__art svg { width: 100%; height: 100%; transition: transform 0.9s var(--ease); }

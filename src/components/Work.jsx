@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import Silk from './Silk.jsx'
+import Words from './Words.jsx'
+import { tilt } from '../hooks/interactions.js'
 import { ArrowLeft, ArrowRight, ArrowUpRight, SPARKLE } from './Icons.jsx'
 import './Work.css'
 
@@ -196,11 +197,12 @@ export default function Work({ onContact }) {
 
   return (
     <section className="section work-section" id="work">
-      <Silk className="work-section__silk" strands={26} />
       <div className="container split">
         <div className="split__intro reveal">
           <span className="pill">Our Work</span>
-          <h2 className="h2">Ideas we’ve brought to life.</h2>
+          <h2 className="h2">
+            <Words>Ideas we’ve brought to life.</Words>
+          </h2>
           <p className="lead">A glimpse into what we’ve been building.</p>
           <button type="button" className="link-arrow" onClick={() => onContact()}>
             Start yours <ArrowRight />
@@ -210,8 +212,9 @@ export default function Work({ onContact }) {
         <div className="work reveal" style={{ '--d': '.1s' }}>
           <div className="work__track" ref={track} onScroll={update} data-end={pos.end}>
             {PROJECTS.map(({ name, type, Art }) => (
-              <article className="project" key={name}>
+              <article className="project tilt" key={name} data-tilt="9" {...tilt}>
                 <div className="project__art"><Art /></div>
+                <span className="tilt__glare" aria-hidden="true" />
                 <div className="project__meta">
                   <span>
                     <span className="project__name">{name}</span>
@@ -221,8 +224,9 @@ export default function Work({ onContact }) {
                 </div>
               </article>
             ))}
-            <button type="button" className="project project--cta" onClick={() => onContact()}>
+            <button type="button" className="project project--cta tilt" data-tilt="9" {...tilt} onClick={() => onContact()}>
               <span className="project__art"><IdeaArt /></span>
+              <span className="tilt__glare" aria-hidden="true" />
               <span className="project__meta">
                 <span>
                   <span className="project__name">Your idea</span>

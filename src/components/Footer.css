@@ -1,5 +1,27 @@
 .footer { padding: 8px 0 28px; }
-.footer__panel { padding: clamp(24px, 3vw, 36px); border-radius: 30px; }
+.footer__panel { padding: clamp(24px, 3vw, 36px) clamp(24px, 3vw, 36px) 0; border-radius: 30px; overflow: hidden; }
+
+/* giant wordmark, lit like the flame and cropped by the panel edge */
+.footer__mark {
+  margin: clamp(16px, 3vw, 32px) 0 -0.2em;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(4.2rem, 18.5vw, 16.5rem);
+  line-height: 0.85;
+  letter-spacing: -0.065em;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  color: transparent;
+  background: linear-gradient(100deg, var(--accent-deep), var(--accent) 30%, var(--accent-soft) 50%, var(--accent) 70%, var(--accent-deep));
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 92%);
+  animation: mark-shine 9s ease-in-out infinite alternate;
+}
+@keyframes mark-shine { from { background-position: 0% 0; } to { background-position: 100% 0; } }
 
 .footer__row {
   display: flex;

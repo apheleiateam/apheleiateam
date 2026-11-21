@@ -5,7 +5,7 @@ import './ContactDialog.css'
 
 // "Start a project" modal. No backend yet: submitting opens the visitor's
 // email app with the message pre-filled.
-export default function ContactDialog({ open, topic, onClose }) {
+export default function ContactDialog({ open, topic, email, onClose }) {
   const ref = useRef(null)
   const [interest, setInterest] = useState('')
   const [sent, setSent] = useState(false)
@@ -54,7 +54,7 @@ export default function ContactDialog({ open, topic, onClose }) {
           </label>
           <label className="field">
             <span>Email</span>
-            <input name="email" type="email" required autoComplete="email" placeholder="you@company.com" />
+            <input key={email || 'blank'} name="email" type="email" required autoComplete="email" placeholder="you@company.com" defaultValue={email} />
           </label>
         </div>
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, Sparkle } from './Icons.jsx'
+import Words from './Words.jsx'
 import './Principles.css'
 
 const PRINCIPLES = [
@@ -41,9 +42,9 @@ export default function Principles({ onContact }) {
         <div className="split__intro reveal">
           <span className="pill">Our Principles</span>
           <h2 className="h2">
-            Simple by design.
+            <Words>Simple by design.</Words>
             <br />
-            Built to last.
+            <Words start={3}>Built to last.</Words>
           </h2>
           <p className="lead">The ideas we hold ourselves to on every project, big or small.</p>
           <button type="button" className="link-arrow" onClick={() => onContact()}>

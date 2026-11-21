@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { Suspense, lazy, useCallback, useMemo, useState } from 'react'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import About from './components/About.jsx'
@@ -9,7 +9,13 @@ import Principles from './components/Principles.jsx'
 import CTA from './components/CTA.jsx'
 import Footer from './components/Footer.jsx'
 import ContactDialog from './components/ContactDialog.jsx'
+import Marquee from './components/Marquee.jsx'
 import useReveal from './hooks/useReveal.js'
+import { useMagnetic } from './hooks/interactions.js'
+import { useTheme } from './theme.jsx'
+import { hasWebGL } from './three/utils.js'
+
+const StrandsBackground = lazy(() => import('./three/StrandsBackground.jsx'))
 
 // Shared gradient used by icons and sparkles (userSpaceOnUse so it also works on straight lines).
 function SvgDefs() {
@@ -27,29 +33,39 @@ function SvgDefs() {
 }
 
 export default function App() {
-  const [contact, setContact] = useState({ open: false, topic: '' })
+  const { theme } = useTheme()
+  const webgl = useMemo(hasWebGL, [])
+  const [contact, setContact] = useState({ open: false, topic: '', email: '' })
 
-  // Components call onContact() or onContact('UI/UX Design') to preselect an interest.
-  const openContact = useCallback(
-    (topic) => setContact({ open: true, topic: typeof topic === 'string' ? topic : '' }),
-    [],
-  )
+  // onContact() · onContact('UI/UX Design') to preselect an interest · onContact({ email }) to prefill
+  const openContact = useCallback((arg) => {
+    const o = typeof arg === 'string' ? { topic: arg } : arg && typeof arg === 'object' && !arg.nativeEvent ? arg : {}
+    setContact({ open: true, topic: o.topic || '', email: o.email || '' })
+  }, [])
   const closeContact = useCallback(() => setContact((c) => ({ ...c, open: false })), [])
 
   useReveal()
+  useMagnetic()
 
   return (
     <>
       <SvgDefs />
-      <div className="ambient" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
+      {webgl ? (
+        <Suspense fallback={null}>
+          <StrandsBackground theme={theme} />
+        </Suspense>
+      ) : (
+        <div className="ambient" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
       <Nav onContact={openContact} />
       <main>
         <Hero onContact={openContact} />
         <Story />
+        <Marquee />
         <About />
         <Services onContact={openContact} />
         <Work onContact={openContact} />
@@ -57,7 +73,7 @@ export default function App() {
         <CTA onContact={openContact} />
       </main>
       <Footer />
-      <ContactDialog open={contact.open} topic={contact.topic} onClose={closeContact} />
+      <ContactDialog open={contact.open} topic={contact.topic} email={contact.email} onClose={closeContact} />
     </>
   )
 }

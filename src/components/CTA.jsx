@@ -1,26 +1,48 @@
-import Silk from './Silk.jsx'
+import { useState } from 'react'
+import Words from './Words.jsx'
 import { ArrowRight, Sparkle } from './Icons.jsx'
 import './CTA.css'
 
+// A bright "flame" card: leave an email here and the full contact form opens
+// with it already filled in.
 export default function CTA({ onContact }) {
+  const [email, setEmail] = useState('')
+
   return (
     <section className="section cta-wrap" id="contact">
-      <Silk className="cta-wrap__silk" strands={28} />
       <div className="container">
-        <div className="cta glass reveal">
-          <Sparkle className="cta__star" />
-          <h2 className="cta__title">
-            Ready to create
-            <br />
-            something extraordinary?
-          </h2>
-          <div className="cta__side">
-            <p>Let’s turn your ideas into impact.</p>
-            <button type="button" className="btn btn--primary" onClick={() => onContact()}>
-              Get in Touch <ArrowRight />
-            </button>
+        <div className="cta reveal">
+          <Sparkle className="cta__star" aria-hidden="true" />
+          <div className="cta__copy">
+            <p className="micro cta__kicker">Start here</p>
+            <h2 className="cta__title">
+              <Words>Ready to create something extraordinary?</Words>
+            </h2>
+            <p className="cta__sub">Leave your email and a line about the idea — we’ll take it from there.</p>
           </div>
-          <span className="cta__planet" aria-hidden="true" />
+          <form
+            className="cta__form"
+            onSubmit={(e) => {
+              e.preventDefault()
+              onContact({ email })
+            }}
+          >
+            <label className="visually-hidden" htmlFor="cta-email">
+              Your email
+            </label>
+            <input
+              id="cta-email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button type="submit" className="btn cta__btn magnetic">
+              Let’s talk <ArrowRight />
+            </button>
+          </form>
         </div>
       </div>
     </section>

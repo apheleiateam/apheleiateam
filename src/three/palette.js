@@ -5,6 +5,7 @@
 export const PALETTES = {
   dark: {
     bg: '#030503',
+    strands: { a: '#b6f06a', b: '#7fc9b0', core: '#f4ffdc', additive: true, haze: 0.55, strength: 1 },
     flame: { a: '#06260e', b: '#2fb84b', c: '#d6f59a', intensity: 0.85 },
     glass: ['#ffffff', '#dcffd0', '#b8f59a', '#ffffff', '#cfe6cb', '#8fe79a'],
     solid: ['#aecbaa', '#46d35b', '#0f2416', '#b6f06a'],
@@ -33,6 +34,7 @@ export const PALETTES = {
   },
   light: {
     bg: '#eef2ec',
+    strands: { a: '#1f8a3a', b: '#4f8f7a', core: '#46d35b', additive: false, haze: 0.4, strength: 0.8 },
     flame: { a: '#cfe9c4', b: '#6cd45f', c: '#f4ffd6', intensity: 0.72 },
     glass: ['#ffffff', '#e8f8df', '#c4ecaa', '#ffffff', '#dbeed6', '#a6e39a'],
     solid: ['#0f2416', '#23a045', '#aecbaa', '#6cc94a'],

@@ -5,6 +5,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import Env from './Env.jsx'
 import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
 import { PALETTES } from './palette.js'
+import { STRAND_SHAPES, createStrandField, pointer, pointerIn, tickPointer } from './strands.js'
 import { seeded, useInView, useReducedMotion } from './utils.js'
 
 /*
@@ -118,17 +119,65 @@ function Ribbon({ palette, labels, labelCount, reduced, kinkRef }) {
   )
 }
 
-// Opaque flame field behind the ribbon; its glow drifts with the ribbon's kink.
-function FlameField({ palette, reduced, kinkRef }) {
+// Opaque backdrop behind the ribbon: the flame glow plus light strands. The strands
+// are rendered into a texture first so the backdrop stays opaque — three.js glass
+// (transmission) only refracts opaque objects, so the cards bend the strands.
+function Backdrop({ palette, reduced, kinkRef }) {
+  const { gl, size } = useThree()
   const mat = useMemo(makeFlameMaterial, [])
+  const field = useMemo(() => createStrandField({ strands: size.width < 700 ? 100 : 160, particles: 260, seed: 11 }), [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const strandScene = useMemo(() => {
+    const scene = new THREE.Scene()
+    scene.add(field.group)
+    return scene
+  }, [field])
+  const cam = useMemo(() => new THREE.Camera(), [])
+  const rt = useMemo(() => new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: false }), [])
+  const pv = useMemo(() => new THREE.Vector2(), [])
+
+  useEffect(() => () => {
+    rt.dispose()
+    field.dispose()
+  }, [rt, field])
+
   useEffect(() => {
-    applyFlamePalette(mat, palette)
+    applyFlamePalette(mat, palette, palette.flame.intensity * 0.75)
     mat.uniforms.uScale.value.set(6.2, 5.6)
-  }, [mat, palette])
-  useFrame((state) => {
-    mat.uniforms.uTime.value = reduced ? 4 : state.clock.elapsedTime
+    mat.uniforms.uStrands.value = rt.texture
+    mat.uniforms.uStrandMix.value = 1
+    mat.uniforms.uAdditive.value = palette.strands.additive ? 1 : 0
+    field.setPalette(palette.strands)
+  }, [mat, palette, rt, field])
+
+  useEffect(() => {
+    const dpr = gl.getPixelRatio()
+    rt.setSize(Math.round(size.width * dpr), Math.round(size.height * dpr))
+    mat.uniforms.uRes.value.set(Math.round(size.width * dpr), Math.round(size.height * dpr))
+    field.uniforms.uPixelRatio.value = dpr
+  }, [gl, size, rt, mat, field])
+
+  useFrame((state, dt) => {
+    const t = reduced ? 4 : state.clock.elapsedTime
+    mat.uniforms.uTime.value = t
     mat.uniforms.uCenter.value.x = THREE.MathUtils.lerp(mat.uniforms.uCenter.value.x, (kinkRef.current || 0) * 0.012, 0.05)
+
+    tickPointer(Math.min(dt, 0.1))
+    pointerIn(gl.domElement.getBoundingClientRect(), pv)
+    field.uniforms.uPointer.value.copy(pv)
+    field.uniforms.uPointerForce.value = reduced ? 0 : pointer.force
+    field.uniforms.uTime.value = reduced ? 3 : t
+    field.setShape(STRAND_SHAPES.home, size.width / size.height, palette.strands.strength)
+
+    const prev = gl.getRenderTarget()
+    gl.setRenderTarget(rt)
+    gl.setClearColor(0x000000, 0)
+    gl.clear()
+    gl.render(strandScene, cam)
+    gl.setRenderTarget(prev)
+    gl.setClearColor(palette.bg, 1)
   })
+
   return (
     <mesh position={[0, 0.15, -3.4]} material={mat}>
       <planeGeometry args={[44, 18]} />
@@ -174,7 +223,7 @@ export default function RibbonCanvas({ theme, labels, labelCount }) {
         <ambientLight intensity={palette.ambient} />
         <directionalLight position={[4, 6, 6]} intensity={palette.key} />
         <directionalLight position={[-6, -3, -4]} intensity={palette.rim} color={palette.rimColor} />
-        <FlameField palette={palette} reduced={reduced} kinkRef={kinkRef} />
+        <Backdrop palette={palette} reduced={reduced} kinkRef={kinkRef} />
         <Ribbon palette={palette} labels={labels} labelCount={labelCount} reduced={reduced} kinkRef={kinkRef} />
       </Canvas>
     </div>

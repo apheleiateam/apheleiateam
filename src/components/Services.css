@@ -12,7 +12,7 @@
   padding: 26px 22px 22px;
   border-radius: var(--radius);
   overflow: hidden;
-  transition: transform 0.4s var(--ease), border-color 0.4s;
+  transition: transform 0.5s var(--ease), border-color 0.4s;
 }
 .service::before {
   content: '';
@@ -23,7 +23,7 @@
   opacity: 0;
   transition: opacity 0.4s;
 }
-.service:hover { transform: translateY(-6px); border-color: rgb(var(--accent-rgb) / 0.45); }
+.service:hover { --lift: -6px; border-color: rgb(var(--accent-rgb) / 0.45); }
 .service:hover::before { opacity: 1; }
 
 .service__icon {

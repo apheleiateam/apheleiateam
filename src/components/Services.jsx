@@ -1,4 +1,6 @@
 import { ArrowRight, IconCode, IconCompass, IconDesign, IconNodes } from './Icons.jsx'
+import Words from './Words.jsx'
+import { tilt } from '../hooks/interactions.js'
 import './Services.css'
 
 const SERVICES = [
@@ -28,20 +30,15 @@ const SERVICES = [
   },
 ]
 
-// Moves the card's spotlight glow to follow the pointer.
-const spotlight = (e) => {
-  const r = e.currentTarget.getBoundingClientRect()
-  e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`)
-  e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`)
-}
-
 export default function Services({ onContact }) {
   return (
     <section className="section" id="services">
       <div className="container split">
         <div className="split__intro reveal">
           <span className="pill">Our Services</span>
-          <h2 className="h2">End-to-end solutions for your digital journey.</h2>
+          <h2 className="h2">
+            <Words>End-to-end solutions for your digital journey.</Words>
+          </h2>
           <p className="lead">From strategy to scale, we’ve got you covered.</p>
           <button type="button" className="link-arrow" onClick={() => onContact()}>
             Discuss your project <ArrowRight />
@@ -52,10 +49,11 @@ export default function Services({ onContact }) {
           {SERVICES.map(({ Icon, title, body, topic }, i) => (
             <article
               key={title}
-              className="service glass reveal"
+              className="service glass tilt reveal"
               style={{ '--d': `${0.08 * i}s` }}
-              onPointerMove={spotlight}
+              {...tilt}
             >
+              <span className="tilt__glare" aria-hidden="true" />
               <span className="service__icon"><Icon /></span>
               <h3>{title}</h3>
               <p>{body}</p>

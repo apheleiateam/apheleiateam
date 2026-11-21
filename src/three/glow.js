@@ -24,6 +24,10 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uA;
   uniform vec3 uB;
   uniform vec3 uC;
+  uniform sampler2D uStrands;   // optional light-strand layer, rendered in screen space
+  uniform vec2 uRes;
+  uniform float uStrandMix;
+  uniform float uAdditive;
   varying vec2 vUv;
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -47,7 +51,13 @@ const fragmentShader = /* glsl */ `
     g = pow(g, 1.35) * uIntensity;
     vec3 flame = mix(uA, uB, smoothstep(0.05, 0.55, g));
     flame = mix(flame, uC, smoothstep(0.62, 1.0, g) * 0.8);
-    gl_FragColor = vec4(mix(uBg, flame, clamp(g * 1.15, 0.0, 1.0)), 1.0);
+    vec3 col = mix(uBg, flame, clamp(g * 1.15, 0.0, 1.0));
+    if (uStrandMix > 0.0) {
+      vec4 st = texture2D(uStrands, gl_FragCoord.xy / uRes);
+      vec3 s = st.rgb / (1.0 + max(max(st.r, st.g), st.b) * 0.35);
+      col = uAdditive > 0.5 ? col + s * uStrandMix : col * (1.0 - clamp(st.a, 0.0, 1.0) * uStrandMix) + st.rgb * uStrandMix;
+    }
+    gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
   }
 `
@@ -65,6 +75,10 @@ export function makeFlameMaterial() {
       uA: { value: new THREE.Color() },
       uB: { value: new THREE.Color() },
       uC: { value: new THREE.Color() },
+      uStrands: { value: null },
+      uRes: { value: new THREE.Vector2(1, 1) },
+      uStrandMix: { value: 0 },
+      uAdditive: { value: 1 },
     },
   })
 }

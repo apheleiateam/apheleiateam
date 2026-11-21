@@ -1,10 +1,12 @@
+import CountUp from './CountUp.jsx'
+import Words from './Words.jsx'
 import { ArrowRight } from './Icons.jsx'
 import './About.css'
 
 const STATS = [
-  { value: '06', label: 'Co-founders' },
-  { value: '04', label: 'Core disciplines' },
-  { value: '2026', label: 'Founded in Tamil Nadu' },
+  { value: 6, pad: 2, label: 'Co-founders' },
+  { value: 4, pad: 2, label: 'Core disciplines' },
+  { value: 2026, from: 1990, label: 'Founded in Tamil Nadu' },
 ]
 
 const ARCH =
@@ -94,9 +96,9 @@ export default function About() {
         <div className="about__copy glass reveal" style={{ '--d': '.1s' }}>
           <span className="pill">About Apheleia</span>
           <h2 className="h2">
-            A creative studio
+            <Words>A creative studio</Words>
             <br />
-            for what’s next.
+            <Words start={3}>for what’s next.</Words>
           </h2>
           <p>
             Apheleia — <em>ἀφέλεια</em> — is the Greek spirit of simplicity. Founded by six friends in
@@ -112,7 +114,9 @@ export default function About() {
           {STATS.map((s) => (
             <div key={s.label} className="stat">
               <dt className="stat__label">{s.label}</dt>
-              <dd className="stat__value">{s.value}</dd>
+              <dd className="stat__value">
+                <CountUp value={s.value} from={s.from} pad={s.pad} />
+              </dd>
             </div>
           ))}
         </dl>

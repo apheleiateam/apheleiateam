@@ -33,6 +33,7 @@ export default function Footer() {
           <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           <span>Made with care in Tamil Nadu, India</span>
         </div>
+        <div className="footer__mark" aria-hidden="true">Apheleia</div>
         </div>
       </div>
     </footer>
