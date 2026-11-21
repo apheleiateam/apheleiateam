@@ -1,25 +1,72 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { brandAtlas, createFlame, loadModel, normalize, restyle } from './models.js'
+import { buildBrandMark } from './brandMark.js'
+import { COLUMN_TOP, buildColumn } from './column.js'
+import { brandAtlas, createFlame, loadModel, normalize } from './models.js'
 
 /*
-  3D models that live in the page background, each pinned to a section anchor
-  (same screen → world mapping as the particles) and loaded only when that
+  3D objects that live in the page background, each pinned to a section anchor
+  (same screen → world mapping as the particles) and created only when that
   section gets close:
 
-    · Principles  — a marble column carrying the eternal green flame
+    · Principles  — a detailed Ionic marble column with the eternal flame + embers
     · Contact     — a ringed planet and a lime-veined lava planet orbiting the portal
-    · Team        — an astronaut drifting along the galaxy orbit, waving hello
+    · Team        — the Apheleia mark in 3D, orbiting the team ring
 
-  Models render in their own pass (crisp, not bloomed); the flame renders in the
-  bloom pass so it glows.
+  Solid objects render in their own crisp pass; the flame and embers render in
+  the bloom pass so they glow.
 */
-
-const MARBLE = { color: '#e7efe3', roughness: 0.42, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.4, sheen: 0.4, sheenColor: '#dcebd6' }
 
 const smooth01 = (x) => {
   const t = Math.min(1, Math.max(0, x))
   return t * t * (3 - 2 * t)
+}
+
+/* ---------- embers rising from the flame (bloom pass) ---------- */
+function createEmbers(count = 70) {
+  const seeds = new Float32Array(count * 4)
+  for (let i = 0; i < count * 4; i++) seeds[i] = Math.random()
+  const geom = new THREE.BufferGeometry()
+  geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3))
+  geom.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4))
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uAlpha: { value: 0 }, uBase: { value: new THREE.Vector3() }, uSize: { value: 1 }, uPixelRatio: { value: 1 } },
+    vertexShader: /* glsl */ `
+      uniform float uTime; uniform float uSize; uniform float uPixelRatio; uniform vec3 uBase;
+      attribute vec4 aSeed;
+      varying float vA;
+      void main() {
+        float life = fract(uTime * (0.18 + aSeed.x * 0.22) + aSeed.y);
+        vec3 p = uBase;
+        p.y += life * uSize * 1.9;
+        p.x += (sin(life * 9.0 + aSeed.z * 30.0) * 0.12 + (aSeed.w - 0.5) * 0.35) * uSize * (0.3 + life);
+        p.z += (aSeed.z - 0.5) * 0.2 * uSize;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = (1.5 + aSeed.w * 2.5) * uPixelRatio * (10.0 / -mv.z);
+        vA = smoothstep(0.0, 0.1, life) * (1.0 - life);
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform float uAlpha;
+      varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - 0.5);
+        float a = smoothstep(0.5, 0.0, d) * vA * uAlpha;
+        vec3 col = mix(vec3(0.74, 0.98, 0.01), vec3(1.0, 1.0, 0.85), 0.4);
+        gl_FragColor = vec4(col * a * 1.6, a);
+        #include <colorspace_fragment>
+      }`,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: THREE.CustomBlending,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneFactor,
+  })
+  const points = new THREE.Points(geom, mat)
+  points.frustumCulled = false
+  points.renderOrder = 21
+  return { points, mat, dispose: () => (geom.dispose(), mat.dispose()) }
 }
 
 export function createModelLayer(gl, bloomScene) {
@@ -30,29 +77,25 @@ export function createModelLayer(gl, bloomScene) {
   scene.environmentIntensity = 0.8
   const hemi = new THREE.HemisphereLight('#ffffff', '#1c2a1e', 1.1)
   const key = new THREE.DirectionalLight('#ffffff', 2.2)
-  key.position.set(3, 5, 6)
+  key.position.set(6, 3.5, 3.5) // raking from the side so flutes and mouldings read
   const rim = new THREE.DirectionalLight('#bcfa03', 1.6)
   rim.position.set(-5, 2, -4)
-  const flameLight = new THREE.PointLight('#9cf06b', 0, 6, 1.6)
+  const flameLight = new THREE.PointLight('#bcfa03', 0, 4, 1.4)
   scene.add(hemi, key, rim, flameLight)
 
   const flame = createFlame()
-  bloomScene.add(flame.mesh)
+  const embers = createEmbers()
+  embers.mat.uniforms.uPixelRatio.value = gl.getPixelRatio()
+  bloomScene.add(flame.mesh, embers.points)
 
   const slots = {
-    column: { anchor: '.principles__stage', url: '/models/column.glb', obj: null, loading: false },
+    column: { anchor: '.principles__stage', obj: null },
     ringed: { anchor: '.cta', url: '/models/planet-ringed.glb', obj: null, loading: false },
     lava: { anchor: '.cta', url: '/models/planet-lava.glb', obj: null, loading: false },
-    astronaut: { anchor: '.team__stage', url: '/models/astronaut.glb', obj: null, loading: false, mixer: null, actions: null },
+    mark: { anchor: '.team__stage', obj: null },
   }
 
   const prepare = {
-    column(gltf) {
-      restyle(gltf.scene, {}, MARBLE)
-      const o = normalize(gltf.scene, 1, { base: true })
-      o.scale.y = 1.7 // a taller, more classical proportion
-      return o
-    },
     ringed(gltf) {
       gltf.scene.traverse((m) => {
         if (!m.isMesh || !m.material.map) return
@@ -69,27 +112,19 @@ export function createModelLayer(gl, bloomScene) {
       })
       return normalize(gltf.scene, 1)
     },
-    astronaut(gltf, slot) {
-      restyle(gltf.scene, {
-        SciFi_Light_Accent: { color: '#bcfa03', roughness: 0.4, emissive: '#5f8a00', emissiveIntensity: 0.35 },
-        SciFi_Light: { color: '#eef4ec', roughness: 0.5, clearcoat: 0.5 },
-        SciFi_MainDark: { color: '#0d1710', roughness: 0.6 },
-        SciFi_Main: { color: '#1d3324', roughness: 0.55 },
-        Grey: { color: '#141c16', roughness: 0.3, metalness: 0.4, clearcoat: 1 },
-      })
-      const o = normalize(gltf.scene, 1)
-      slot.mixer = new THREE.AnimationMixer(gltf.scene)
-      const clip = (n) => gltf.animations.find((a) => a.name === n)
-      slot.actions = { idle: slot.mixer.clipAction(clip('Idle')), wave: slot.mixer.clipAction(clip('Wave')) }
-      slot.actions.idle.play()
-      slot.waveAt = 0
-      return o
-    },
   }
 
+  // procedural objects are built on first approach; models load on first approach
   const ensure = (name) => {
     const slot = slots[name]
     if (slot.obj || slot.loading) return
+    if (name === 'column') slot.obj = buildColumn()
+    else if (name === 'mark') slot.obj = buildBrandMark()
+    if (slot.obj) {
+      slot.obj.visible = false
+      scene.add(slot.obj)
+      return
+    }
     slot.loading = true
     loadModel(slot.url)
       .then((gltf) => {
@@ -105,68 +140,60 @@ export function createModelLayer(gl, bloomScene) {
     const d = Math.abs(r.top + r.height / 2 - vh / 2)
     return smooth01(1 - (d - r.height * 0.35) / (vh * 0.75))
   }
+  const near = (r, vh, n = 2) => Math.abs(r.top + r.height / 2 - vh / 2) < vh * n
 
-  const wave = (slot, now) => {
-    const { idle, wave: w } = slot.actions
-    w.reset().setLoop(THREE.LoopOnce, 1)
-    w.clampWhenFinished = false
-    w.crossFadeFrom(idle, 0.35, false).play()
-    slot.waveAt = now
-    const back = () => {
-      idle.reset().crossFadeFrom(w, 0.45, false).play()
-      slot.mixer.removeEventListener('finished', back)
-    }
-    slot.mixer.addEventListener('finished', back)
-  }
-
-  let lastAnchors = {}
+  let anchors = {}
   const refreshAnchors = () => {
-    lastAnchors = {}
-    for (const [name, s] of Object.entries(slots)) lastAnchors[name] = document.querySelector(s.anchor)
+    anchors = {}
+    for (const [name, s] of Object.entries(slots)) anchors[name] = document.querySelector(s.anchor)
   }
   refreshAnchors()
 
   /* per frame: ctx = { t, dt, k (world units per px), w, h, reduced } */
-  const update = ({ t, dt, k, w, h, reduced }) => {
+  const update = ({ t, k, w, h, reduced }) => {
     const toWorld = (x, y) => [(x - w / 2) * k, -(y - h / 2) * k]
-    for (const name of Object.keys(slots)) {
-      if (!lastAnchors[name]?.isConnected) refreshAnchors()
-    }
+    if (Object.values(anchors).some((el) => !el?.isConnected)) refreshAnchors()
 
-    /* column + flame */
+    /* column + flame + embers */
     {
-      const el = lastAnchors.column
+      const el = anchors.column
       const slot = slots.column
       let p = 0
       if (el) {
         const r = el.getBoundingClientRect()
-        if (Math.abs(r.top + r.height / 2 - h / 2) < h * 2) ensure('column')
+        if (near(r, h)) ensure('column')
         p = presence(r, h)
-        const height = r.height * 0.62 * k
-        const [x, y] = toWorld(r.left + r.width / 2, r.bottom - r.height * 0.06)
+        const height = r.height * 0.74 * k // world height of the column up to the bowl rim
+        const s = (height / COLUMN_TOP) * (0.9 + 0.1 * p)
+        const [x, y] = toWorld(r.left + r.width / 2, r.bottom - r.height * 0.04)
         if (slot.obj) {
           slot.obj.visible = p > 0.01
           slot.obj.position.set(x, y, 0)
-          slot.obj.scale.setScalar((height / 1.7) * (0.85 + 0.15 * p))
-          slot.obj.scale.y = height * (0.85 + 0.15 * p)
-          slot.obj.rotation.y = reduced ? 0.4 : t * 0.15
+          slot.obj.scale.setScalar(s)
+          slot.obj.rotation.y = reduced ? 0.5 : 0.5 + Math.sin(t * 0.25) * 0.45
         }
-        const top = y + height * (0.85 + 0.15 * p)
-        flame.mesh.position.set(x, top - height * 0.02, 0.05)
-        flame.mesh.scale.set(height * 0.55, height * 0.75, 1)
-        flameLight.position.set(x, top + height * 0.2, 0.6)
+        const top = y + COLUMN_TOP * s
+        flame.mesh.position.set(x, top - 0.08 * s, 0.05)
+        flame.mesh.scale.set(2.1 * s, 2.2 * s, 1)
+        embers.mat.uniforms.uBase.value.set(x, top + 0.15 * s, 0.1)
+        embers.mat.uniforms.uSize.value = s
+        flameLight.position.set(x, top + 0.45 * s, 0.9 * s)
+        flameLight.distance = 3.5 * s
       }
+      const on = slot.obj ? p : 0
       flame.mat.uniforms.uTime.value = reduced ? 1 : t
-      flame.mat.uniforms.uAlpha.value = slot.obj ? p : 0
-      flameLight.intensity = slot.obj ? 3 * p : 0
+      flame.mat.uniforms.uAlpha.value = on
+      embers.mat.uniforms.uTime.value = reduced ? 0 : t
+      embers.mat.uniforms.uAlpha.value = reduced ? 0 : on
+      flameLight.intensity = 4 * on
     }
 
     /* planets orbiting the CTA portal */
     {
-      const el = lastAnchors.ringed
+      const el = anchors.ringed
       if (el) {
         const r = el.getBoundingClientRect()
-        if (Math.abs(r.top + r.height / 2 - h / 2) < h * 2) {
+        if (near(r, h)) {
           ensure('ringed')
           ensure('lava')
         }
@@ -190,25 +217,24 @@ export function createModelLayer(gl, bloomScene) {
       }
     }
 
-    /* astronaut along the galaxy orbit around the team ring */
+    /* the 3D mark, orbiting the team ring along the galaxy */
     {
-      const el = lastAnchors.astronaut
-      const slot = slots.astronaut
+      const el = anchors.mark
+      const slot = slots.mark
       if (el) {
         const r = el.getBoundingClientRect()
-        if (Math.abs(r.top + r.height / 2 - h / 2) < h * 1.6) ensure('astronaut')
+        if (near(r, h, 1.6)) ensure('mark')
         const p = presence(r, h)
         if (slot.obj) {
           const [cx, cy] = toWorld(r.left + r.width / 2, r.top + r.height / 2)
-          const R = Math.min(r.width * 0.46, 620) * k
-          const a = (reduced ? 0.6 : t * 0.07) + 0.6
+          const R = Math.min(r.width * 0.44, 600) * k
+          const a = (reduced ? 0.4 : t * 0.09) + 0.4
+          const depth = Math.sin(a)
           slot.obj.visible = p > 0.01
-          slot.obj.position.set(cx + Math.cos(a) * R, cy + Math.sin(a) * R * 0.28 + Math.sin(t * 0.8) * 0.06, Math.sin(a) * 0.6)
-          slot.obj.scale.setScalar(r.height * 0.62 * k * (0.8 + 0.2 * p))
-          slot.obj.rotation.set(Math.sin(t * 0.5) * 0.12, -0.5 + Math.sin(t * 0.3) * 0.4, Math.sin(t * 0.4) * 0.18 - 0.1)
-          if (!reduced) slot.mixer.update(dt)
-          const now = t
-          if (p > 0.6 && now - slot.waveAt > 9) wave(slot, now)
+          slot.obj.position.set(cx + Math.cos(a) * R, cy + depth * R * 0.26 + Math.sin(t * 0.9) * 0.05, depth * 0.6)
+          slot.obj.scale.setScalar(r.height * 0.42 * k * (0.8 + 0.2 * p) * (0.88 + 0.12 * depth))
+          // rock rather than spin, so the A never turns edge-on
+          slot.obj.rotation.set(Math.sin(t * 0.6) * 0.12, reduced ? 0.35 : 0.35 + Math.sin(t * 0.5) * 0.6, Math.sin(t * 0.45) * 0.08)
         }
       }
     }
@@ -217,18 +243,20 @@ export function createModelLayer(gl, bloomScene) {
   const setTheme = (palette) => {
     const dark = palette.bg === '#030503'
     flame.setTheme(dark)
-    hemi.intensity = dark ? 1.0 : 1.4
-    key.intensity = dark ? 2.2 : 2.6
-    rim.intensity = dark ? 1.6 : 0.6
-    scene.environmentIntensity = dark ? 0.7 : 1
+    hemi.intensity = dark ? 0.55 : 1.0
+    key.intensity = dark ? 2.8 : 2.6
+    rim.intensity = dark ? 1.8 : 0.7
+    scene.environmentIntensity = dark ? 0.5 : 0.75
   }
 
   const dispose = () => {
     scene.environment?.dispose()
     pmrem.dispose()
-    bloomScene.remove(flame.mesh)
+    bloomScene.remove(flame.mesh, embers.points)
     flame.mesh.geometry.dispose()
     flame.mat.dispose()
+    embers.dispose()
+    for (const s of Object.values(slots)) s.obj?.userData.dispose?.()
   }
 
   return { scene, update, setTheme, dispose }

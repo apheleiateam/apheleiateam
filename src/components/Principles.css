@@ -95,7 +95,7 @@
 .principles__stage {
   position: relative;
   align-self: stretch;
-  min-height: 420px;
+  min-height: 480px;
 }
 .principles__stage::before {
   content: '';
