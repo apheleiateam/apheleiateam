@@ -1,38 +1,74 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { NAV_LINKS } from '../content.js'
+import useScrollSpy from '../hooks/useScrollSpy.js'
+import { ArrowRight, Close, Menu, Sparkle } from './Icons.jsx'
+import './Nav.css'
 
-const links = [
-  { href: '#story', label: 'story' },
-  { href: '#capabilities', label: 'capabilities' },
-  { href: '#studio', label: 'studio' },
-  { href: '#enquire', label: 'enquire' },
-]
+const IDS = NAV_LINKS.map((l) => l.id)
 
-export default function Nav() {
+export default function Nav({ onContact }) {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const active = useScrollSpy(IDS)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   const close = () => setOpen(false)
 
   return (
-    <header className="nav">
+    <header className={`nav${scrolled ? ' nav--scrolled' : ''}${open ? ' nav--open' : ''}`}>
       <div className="container nav__inner">
-        <a href="#top" className="nav__logo" onClick={close}>APHELEIA</a>
+        <a href="#home" className="brand" onClick={close}>
+          <Sparkle />
+          <span>Apheleia</span>
+        </a>
+
+        <div className="nav__menu" id="nav-menu">
+          <nav aria-label="Primary">
+            <ul className="nav__links">
+              {NAV_LINKS.map((l) => (
+                <li key={l.id}>
+                  <a href={`#${l.id}`} aria-current={active === l.id ? 'true' : undefined} onClick={close}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <button
+            type="button"
+            className="btn btn--outline btn--sm nav__cta"
+            onClick={() => {
+              close()
+              onContact()
+            }}
+          >
+            Let’s Talk <ArrowRight />
+          </button>
+        </div>
 
         <button
+          type="button"
           className="nav__toggle"
-          aria-label="Toggle menu"
+          aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
+          aria-controls="nav-menu"
           onClick={() => setOpen((o) => !o)}
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-          </svg>
+          {open ? <Close /> : <Menu />}
         </button>
-
-        <ul className={`nav__links ${open ? 'is-open' : ''}`}>
-          {links.map((l) => (
-            <li key={l.href}><a href={l.href} onClick={close}>{l.label}</a></li>
-          ))}
-          <li><a href="#enquire" className="btn btn--light" onClick={close}>partner with us</a></li>
-        </ul>
       </div>
     </header>
   )

@@ -1,123 +1,162 @@
-// Soft flowing lines, inspired by the brand moodboard.
-function Waves() {
-  const lines = Array.from({ length: 14 }, (_, i) => i)
+import Silk from './Silk.jsx'
+import { ArrowDown, ArrowRight, SPARKLE } from './Icons.jsx'
+import './Hero.css'
+
+const RING_BACK = 'M30 300A270 74 0 0 1 570 300'
+const RING_FRONT = 'M30 300A270 74 0 0 0 570 300'
+const RING2_BACK = 'M70 300A230 58 0 0 1 530 300'
+const RING2_FRONT = 'M70 300A230 58 0 0 0 530 300'
+const STRANDS = Array.from({ length: 30 }, (_, i) => i / 29)
+
+function Star({ x, y, s = 1, delay = 0 }) {
   return (
-    <svg className="hero__waves" viewBox="0 0 1440 500" preserveAspectRatio="none" aria-hidden="true">
-      {lines.map((i) => (
-        <path
-          key={`t${i}`}
-          d={`M0 ${360 + i * 6} C 360 ${250 + i * 8}, 720 ${470 - i * 4}, 1440 ${170 + i * 9}`}
-          fill="none"
-          stroke="#20A69A"
-          strokeOpacity={0.08 + i * 0.012}
-          strokeWidth="1"
-        />
-      ))}
-      {lines.map((i) => (
-        <path
-          key={`n${i}`}
-          d={`M0 ${420 - i * 5} C 420 ${330 + i * 6}, 900 ${500 - i * 7}, 1440 ${300 + i * 5}`}
-          fill="none"
-          stroke="#142D3A"
-          strokeOpacity={0.04 + i * 0.008}
-          strokeWidth="1"
-        />
-      ))}
-    </svg>
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <path className="twinkle f-soft" d={SPARKLE} style={{ animationDelay: `${delay}s` }} />
+    </g>
   )
 }
 
-// Abstract composition of soft geometric forms (placeholder for 3D render).
-function HeroArt() {
+// Glowing orb with orbital rings and silk strands — placeholder for a 3D hero render.
+function HeroOrb() {
   return (
-    <svg className="hero__art" viewBox="0 0 520 480" role="img" aria-label="Abstract geometric shapes">
+    <svg className="orb" viewBox="0 0 600 600" aria-hidden="true">
       <defs>
-        <radialGradient id="gSphere" cx="35%" cy="30%" r="75%">
-          <stop offset="0%" stopColor="#3b5b6b" />
-          <stop offset="100%" stopColor="#142D3A" />
+        <radialGradient id="orb-body" cx="34%" cy="28%" r="80%">
+          <stop offset="0" className="sc-hi" />
+          <stop offset=".42" className="sc-navy" />
+          <stop offset="1" className="sc-bg" />
         </radialGradient>
-        <radialGradient id="gMint" cx="35%" cy="30%" r="80%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#bcdcd5" />
+        <radialGradient id="orb-rim" cx="40%" cy="38%" r="65%">
+          <stop offset=".72" className="sc-bright" stopOpacity="0" />
+          <stop offset=".96" className="sc-bright" stopOpacity=".55" />
+          <stop offset="1" className="sc-soft" stopOpacity=".9" />
         </radialGradient>
-        <linearGradient id="gTube" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#e9f3f0" />
-          <stop offset="100%" stopColor="#b6d6cf" />
+        <linearGradient id="orb-ring" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" className="sc-accent" stopOpacity="0" />
+          <stop offset=".55" className="sc-bright" stopOpacity="1" />
+          <stop offset="1" className="sc-soft" stopOpacity=".15" />
         </linearGradient>
-        <linearGradient id="gTeal" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#3cc2b5" />
-          <stop offset="100%" stopColor="#1a8b81" />
+        <linearGradient id="orb-strand" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" className="sc-accent" stopOpacity="0" />
+          <stop offset=".45" className="sc-bright" stopOpacity=".95" />
+          <stop offset="1" className="sc-soft" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
-          <stop offset="100%" stopColor="#dcebe7" stopOpacity="0.35" />
-        </linearGradient>
-        <filter id="blur"><feGaussianBlur stdDeviation="14" /></filter>
+        <filter id="orb-blur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="42" />
+        </filter>
+        <filter id="orb-soft" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="8" />
+        </filter>
+        <clipPath id="orb-clip">
+          <circle cx="300" cy="300" r="190" />
+        </clipPath>
       </defs>
 
-      {/* navy sphere */}
-      <g className="float">
-        <circle cx="120" cy="80" r="62" fill="url(#gSphere)" />
+      <circle cx="320" cy="320" r="210" className="f-accent" opacity=".32" filter="url(#orb-blur)" />
+
+      <g className="orb__float">
+        <g transform="rotate(-18 300 300)" fill="none" stroke="url(#orb-ring)">
+          <path d={RING_BACK} strokeWidth="1.4" opacity=".45" />
+          <path d={RING2_BACK} strokeWidth="1" opacity=".25" />
+        </g>
+
+        <circle cx="300" cy="300" r="190" fill="url(#orb-body)" />
+        <g clipPath="url(#orb-clip)" fill="none" className="s-soft" strokeOpacity=".07">
+          {[0.18, 0.42, 0.66, 0.9].map((k) => (
+            <ellipse key={`lat${k}`} cx="300" cy="300" rx="190" ry={190 * k} />
+          ))}
+          {[0.25, 0.55, 0.85].map((k) => (
+            <ellipse key={`lon${k}`} cx="300" cy="300" rx={190 * k} ry="190" />
+          ))}
+        </g>
+        <circle cx="300" cy="300" r="190" fill="url(#orb-rim)" />
+        <ellipse cx="236" cy="206" rx="74" ry="38" fill="#fff" opacity=".1" transform="rotate(-35 236 206)" filter="url(#orb-soft)" />
+
+        <g transform="rotate(-18 300 300)" fill="none" stroke="url(#orb-ring)">
+          <path d={RING_FRONT} strokeWidth="2" />
+          <path d={RING2_FRONT} strokeWidth="1" opacity=".5" />
+          <circle cx="435" cy="364" r="5" className="f-bright" stroke="none" />
+          <circle cx="435" cy="364" r="14" className="f-bright" stroke="none" opacity=".2" />
+        </g>
       </g>
 
-      {/* teal cylinder top-right */}
-      <g className="float float--b">
-        <rect x="330" y="20" width="80" height="90" rx="10" fill="url(#gTeal)" />
-        <ellipse cx="370" cy="20" rx="40" ry="10" fill="#4fd1c4" />
+      <g className="orb__strands" fill="none" stroke="url(#orb-strand)">
+        <path d="M-30 480C140 440 380 560 640 280" strokeWidth="46" strokeOpacity=".07" />
+        {STRANDS.map((t, i) => (
+          <path
+            key={i}
+            d={`M-30 ${500 - t * 60}C140 ${420 + t * 70} 380 ${590 - t * 110} 640 ${250 + t * 80}`}
+            strokeWidth=".9"
+            strokeOpacity={0.1 + 0.55 * Math.sin(Math.PI * t)}
+          />
+        ))}
       </g>
 
-      {/* mint tube with navy ring, left */}
-      <g className="float float--c">
-        <path d="M60 230 L250 160 L300 300 L110 370 Z" fill="url(#gTube)" />
-        <ellipse cx="85" cy="300" rx="62" ry="72" transform="rotate(-20 85 300)" fill="#142D3A" />
-        <ellipse cx="85" cy="300" rx="34" ry="42" transform="rotate(-20 85 300)" fill="#bcdcd5" />
-      </g>
+      <circle cx="104" cy="118" r="18" fill="url(#orb-body)" />
+      <circle cx="104" cy="118" r="18" fill="url(#orb-rim)" />
 
-      {/* navy cylinder with teal face, right */}
-      <g className="float">
-        <path d="M250 170 L420 120 L450 260 L280 310 Z" fill="#142D3A" />
-        <ellipse cx="435" cy="190" rx="62" ry="74" fill="#0f2430" />
-        <ellipse cx="435" cy="190" rx="46" ry="56" fill="url(#gTeal)" />
-      </g>
-
-      {/* frosted glass panels */}
-      <rect x="205" y="30" width="120" height="330" rx="22" fill="url(#gGlass)" stroke="#ffffff" strokeOpacity="0.9" />
-      <rect x="140" y="100" width="150" height="130" rx="22" fill="url(#gGlass)" stroke="#ffffff" strokeOpacity="0.8" />
-      <circle cx="270" cy="230" r="55" fill="#142D3A" opacity="0.45" filter="url(#blur)" />
-
-      {/* mint sphere */}
-      <g className="float float--b">
-        <circle cx="250" cy="385" r="78" fill="url(#gMint)" />
-      </g>
-
-      {/* teardrop */}
-      <g className="float float--c">
-        <path d="M400 330 C 470 300, 500 360, 470 420 C 450 455, 410 440, 390 410 Z" fill="url(#gTube)" />
-        <path d="M390 410 C 380 380, 390 350, 400 330 C 420 370, 430 410, 420 440 Z" fill="#142D3A" />
-      </g>
-
-      <line x1="325" y1="360" x2="395" y2="360" stroke="#142D3A" strokeWidth="2" />
+      <Star x={500} y={58} s={1.15} />
+      <Star x={60} y={300} s={0.6} delay={1.4} />
+      <Star x={540} y={440} s={0.5} delay={2.6} />
     </svg>
   )
 }
 
-export default function Hero() {
+export default function Hero({ onContact }) {
   return (
-    <section className="hero" id="top">
-      <Waves />
-      <div className="container hero__grid">
-        <div className="reveal">
-          <h1>Simplicity,<br />built for <em>scale.</em></h1>
-          <p className="hero__lede">
-            We are a team of six co-founders based in Tamil Nadu, engineering effortless
-            digital products and robust system architectures.
-          </p>
-          <a href="#studio" className="btn btn--teal">
-            See our work <span className="arrow">→</span>
-          </a>
-        </div>
-        <HeroArt />
+    <section className="hero" id="home">
+      <div className="hero__bg" aria-hidden="true">
+        <div className="hero__glow hero__glow--a" />
+        <div className="hero__glow hero__glow--b" />
+        <div className="hero__lines" />
+        <Silk className="hero__silk" />
       </div>
+
+      <div className="container hero__grid">
+        <div className="hero__copy">
+          <span className="pill reveal">Crafting digital simplicity</span>
+          <h1 className="hero__title reveal" style={{ '--d': '.08s' }}>
+            Ideas to
+            <br />
+            <span className="text-gradient">Impact.</span>
+          </h1>
+          <p className="hero__lede reveal" style={{ '--d': '.16s' }}>
+            At Apheleia, we design and build digital products that feel effortless — simple on the
+            surface, engineered to scale underneath.
+          </p>
+          <div className="hero__actions reveal" style={{ '--d': '.24s' }}>
+            <button type="button" className="btn btn--primary" onClick={() => onContact()}>
+              Start a Project <ArrowRight />
+            </button>
+            <a href="#about" className="story-link">
+              <span className="story-link__icon"><ArrowDown /></span>
+              Our Story
+            </a>
+          </div>
+        </div>
+
+        <div className="hero__visual reveal" style={{ '--d': '.2s' }}>
+          <HeroOrb />
+          <div className="stat-card glass">
+            <div className="stat-card__value">06</div>
+            <div className="stat-card__label">Co-founders,<br />one mission</div>
+            <div className="avatars" aria-hidden="true">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <span key={i} style={{ '--i': i }} />
+              ))}
+            </div>
+          </div>
+          <div className="loc-chip glass">
+            <span className="loc-chip__dot" />
+            Tamil Nadu, India
+          </div>
+        </div>
+      </div>
+
+      <a href="#about" className="scroll-cue" aria-label="Scroll to explore">
+        <span className="scroll-cue__mouse" />
+        <span>Scroll<br />to explore</span>
+      </a>
     </section>
   )
 }

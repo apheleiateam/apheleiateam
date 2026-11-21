@@ -1,84 +1,251 @@
-// Stylised placeholder previews — replace with real screenshots later.
-function MobilePreview() {
+import { useEffect, useRef, useState } from 'react'
+import Silk from './Silk.jsx'
+import { ArrowLeft, ArrowRight, ArrowUpRight, SPARKLE } from './Icons.jsx'
+import './Work.css'
+
+/* ---------- placeholder artwork — swap for real screenshots later ---------- */
+
+function KurinjiArt() {
   return (
-    <svg viewBox="0 0 640 360" aria-hidden="true">
-      <rect width="640" height="360" fill="#DCEBE7" />
-      {/* phone */}
-      <rect x="90" y="30" width="130" height="300" rx="18" fill="#142D3A" />
-      <rect x="98" y="40" width="114" height="280" rx="12" fill="#F5F7F4" />
-      <rect x="98" y="40" width="114" height="90" rx="12" fill="#142D3A" />
-      <rect x="110" y="70" width="70" height="8" rx="4" fill="#F5F7F4" />
-      <rect x="110" y="86" width="50" height="5" rx="2.5" fill="#DCEBE7" opacity="0.7" />
-      <rect x="110" y="104" width="40" height="12" rx="6" fill="#20A69A" />
-      <rect x="108" y="142" width="44" height="52" rx="6" fill="#DCEBE7" />
-      <rect x="158" y="142" width="44" height="52" rx="6" fill="#DCEBE7" />
-      <rect x="108" y="206" width="94" height="60" rx="6" fill="#bcdcd5" />
-      <rect x="108" y="278" width="94" height="8" rx="4" fill="#DCEBE7" />
-      {/* second screen */}
-      <rect x="236" y="40" width="110" height="280" rx="10" fill="#FFFFFF" stroke="#142D3A" strokeOpacity="0.15" />
-      <rect x="236" y="40" width="110" height="80" rx="10" fill="#6f9a86" />
-      <rect x="246" y="134" width="90" height="34" rx="6" fill="#F5F7F4" />
-      <rect x="246" y="178" width="90" height="34" rx="6" fill="#F5F7F4" />
-      <rect x="246" y="286" width="44" height="14" rx="7" fill="#142D3A" />
-      {/* cards */}
-      {[[362, 40], [490, 40], [362, 186], [490, 186]].map(([x, y], i) => (
-        <g key={i}>
-          <rect x={x} y={y} width="116" height="134" rx="8" fill="#F5F7F4" stroke="#142D3A" strokeOpacity="0.12" />
-          <rect x={x + 12} y={y + 14} width="20" height="20" rx="5" fill="#DCEBE7" />
-          <rect x={x + 12} y={y + 46} width="70" height="6" rx="3" fill="#263746" opacity="0.6" />
-          <rect x={x + 12} y={y + 66} width="90" height="6" rx="3" fill="#DCEBE7" />
-          <rect x={x + 12} y={y + 80} width="74" height="6" rx="3" fill="#DCEBE7" />
+    <svg viewBox="0 0 300 345" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="k-glow">
+          <stop offset="0" className="sc-accent" stopOpacity=".55" />
+          <stop offset="1" className="sc-accent" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="k-card" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" className="sc-bright" />
+          <stop offset="1" className="sc-accent" />
+        </linearGradient>
+        <linearGradient id="k-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="sc-bright" stopOpacity=".35" />
+          <stop offset="1" className="sc-bright" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width="300" height="345" className="f-raised" />
+      <circle cx="160" cy="140" r="160" fill="url(#k-glow)" />
+      <g transform="translate(0 -20)">
+        {/* back phone */}
+        <g transform="rotate(10 205 165)">
+          <rect x="150" y="50" width="104" height="212" rx="20" className="f-bg s-soft" strokeOpacity=".25" />
+          <rect x="156" y="56" width="92" height="200" rx="15" className="f-navy" />
+          <rect x="166" y="78" width="72" height="44" rx="8" fill="url(#k-card)" />
+          <rect x="174" y="108" width="30" height="4" rx="2" fill="#fff" opacity=".7" />
+          {[0, 1, 2, 3].map((i) => (
+            <rect key={i} x={166 + (i % 2) * 38} y={134 + Math.floor(i / 2) * 38} width="34" height="32" rx="7" fill="#fff" opacity=".06" />
+          ))}
+          <rect x="166" y="214" width="72" height="22" rx="11" className="f-accent" />
         </g>
-      ))}
+        {/* front phone */}
+        <g transform="rotate(-12 110 190)">
+          <rect x="56" y="80" width="108" height="220" rx="21" className="f-bg s-soft" strokeOpacity=".3" />
+          <rect x="62" y="86" width="96" height="208" rx="16" className="f-navy" />
+          <rect x="96" y="92" width="28" height="6" rx="3" className="f-bg" />
+          <rect x="72" y="112" width="38" height="4" rx="2" fill="#fff" opacity=".45" />
+          <rect x="72" y="122" width="62" height="11" rx="3" fill="#fff" opacity=".9" />
+          <path d="M70 186L84 176 96 181 110 164 124 170 138 152 150 156V200H70Z" fill="url(#k-area)" />
+          <polyline
+            points="70,186 84,176 96,181 110,164 124,170 138,152 150,156"
+            fill="none"
+            className="s-bright"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {[0, 1, 2].map((i) => (
+            <g key={i}>
+              <rect x="70" y={212 + i * 24} width="80" height="18" rx="6" fill="#fff" opacity=".05" />
+              <circle cx="80" cy={221 + i * 24} r="4" className="f-accent" />
+              <rect x="90" y={219 + i * 24} width="34" height="4" rx="2" fill="#fff" opacity=".4" />
+            </g>
+          ))}
+        </g>
+      </g>
     </svg>
   )
 }
 
-function WebPreview() {
+const NODES = [[86, 118], [86, 176], [150, 102], [150, 146], [150, 190], [214, 120], [214, 172]]
+const EDGES = [[0, 2], [0, 3], [1, 3], [1, 4], [2, 5], [3, 5], [3, 6], [4, 6]]
+const HOT = new Set(['0-3', '3-5', '3-6'])
+
+function EngineArt() {
   return (
-    <svg viewBox="0 0 640 360" aria-hidden="true">
-      <rect width="640" height="360" fill="#c9dfd9" />
-      <rect x="150" y="26" width="450" height="334" rx="10" fill="#DCEBE7" stroke="#142D3A" strokeOpacity="0.2" />
-      <rect x="168" y="44" width="60" height="7" rx="3.5" fill="#142D3A" />
-      {[300, 340, 380, 420].map((x) => (
-        <rect key={x} x={x} y="45" width="28" height="5" rx="2.5" fill="#263746" opacity="0.5" />
+    <svg viewBox="0 0 300 345" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="e-glow">
+          <stop offset="0" className="sc-accent" stopOpacity=".5" />
+          <stop offset="1" className="sc-accent" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="e-screen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="sc-navy" />
+          <stop offset="1" className="sc-bg" />
+        </linearGradient>
+        <filter id="e-blur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" />
+        </filter>
+      </defs>
+      <rect width="300" height="345" className="f-raised" />
+      <circle cx="150" cy="140" r="160" fill="url(#e-glow)" />
+
+      <rect x="34" y="50" width="232" height="156" rx="10" className="f-bg s-soft" strokeOpacity=".3" />
+      <rect x="42" y="58" width="216" height="140" rx="5" fill="url(#e-screen)" />
+      {[52, 60, 68].map((x) => (
+        <circle key={x} cx={x} cy="68" r="2.3" fill="#fff" opacity=".25" />
       ))}
-      <rect x="540" y="41" width="40" height="12" rx="3" fill="#142D3A" />
-      <text x="190" y="130" fontFamily="Inter, sans-serif" fontSize="34" fontWeight="500" fill="#142D3A">Web platform</text>
-      <rect x="190" y="146" width="220" height="6" rx="3" fill="#263746" opacity="0.35" />
-      <rect x="190" y="160" width="180" height="6" rx="3" fill="#263746" opacity="0.35" />
-      <rect x="190" y="180" width="60" height="16" rx="3" fill="#142D3A" />
-      <rect x="190" y="226" width="180" height="134" rx="8" fill="#F5F7F4" opacity="0.7" />
-      <rect x="390" y="226" width="180" height="134" rx="8" fill="#F5F7F4" opacity="0.7" />
-      <circle cx="214" cy="252" r="10" fill="#DCEBE7" />
-      <circle cx="414" cy="252" r="10" fill="#DCEBE7" />
-      <rect x="204" y="276" width="100" height="6" rx="3" fill="#263746" opacity="0.5" />
-      <rect x="404" y="276" width="90" height="6" rx="3" fill="#263746" opacity="0.5" />
+
+      {EDGES.map(([a, b]) => {
+        const hot = HOT.has(`${a}-${b}`)
+        const [x1, y1] = NODES[a]
+        const [x2, y2] = NODES[b]
+        return (
+          <g key={`${a}-${b}`}>
+            {hot && <line x1={x1} y1={y1} x2={x2} y2={y2} className="s-bright" strokeWidth="4" opacity=".6" filter="url(#e-blur)" />}
+            <line x1={x1} y1={y1} x2={x2} y2={y2} className={hot ? 's-bright' : 's-soft'} strokeWidth="1.3" strokeOpacity={hot ? 1 : 0.25} />
+          </g>
+        )
+      })}
+      {NODES.map(([x, y], i) =>
+        i === 3 ? (
+          <g key={i}>
+            <circle cx={x} cy={y} r="16" className="f-bright" opacity=".25" filter="url(#e-blur)" />
+            <circle cx={x} cy={y} r="9" className="f-bright" />
+          </g>
+        ) : (
+          <circle key={i} cx={x} cy={y} r="6" className="f-bg s-bright" strokeWidth="1.5" />
+        ),
+      )}
+
+      <path d="M18 212H282L270 228H30Z" className="f-slate" />
+      <rect x="128" y="212" width="44" height="4" rx="2" className="f-bg" opacity=".6" />
     </svg>
   )
 }
 
-const projects = [
-  { title: 'Project Kurinji', tag: 'digital product', Preview: MobilePreview },
-  { title: 'The Grounding Engine', tag: 'system arch', Preview: WebPreview },
+function IdeaArt() {
+  return (
+    <svg viewBox="0 0 300 345" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="i-glow">
+          <stop offset="0" className="sc-accent" stopOpacity=".6" />
+          <stop offset="1" className="sc-accent" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="300" height="345" className="f-raised" />
+      <circle cx="150" cy="140" r="150" fill="url(#i-glow)" />
+      {[36, 62, 90, 120, 152].map((r, i) => (
+        <circle
+          key={r}
+          cx="150"
+          cy="140"
+          r={r}
+          fill="none"
+          className="s-soft"
+          strokeOpacity={0.2 - i * 0.03}
+          strokeDasharray={i % 2 ? '2 6' : undefined}
+        />
+      ))}
+      <g transform="translate(120 110) scale(2.5)">
+        <path d={SPARKLE} fill="url(#g-accent)" />
+      </g>
+      <g transform="translate(222 60) scale(.6)">
+        <path className="twinkle f-soft" d={SPARKLE} />
+      </g>
+      <g transform="translate(64 196) scale(.45)">
+        <path className="twinkle f-soft" d={SPARKLE} style={{ animationDelay: '1.6s' }} />
+      </g>
+    </svg>
+  )
+}
+
+const PROJECTS = [
+  { name: 'Kurinji', type: 'Mobile app · Digital product', Art: KurinjiArt },
+  { name: 'Grounding Engine', type: 'Platform · System architecture', Art: EngineArt },
 ]
 
-export default function Work() {
+export default function Work({ onContact }) {
+  const track = useRef(null)
+  const [pos, setPos] = useState({ index: 0, start: true, end: false })
+  const total = PROJECTS.length + 1
+
+  const stepSize = () => {
+    const t = track.current
+    const gap = parseFloat(getComputedStyle(t).columnGap) || 0
+    return t.firstElementChild.getBoundingClientRect().width + gap
+  }
+
+  const update = () => {
+    const t = track.current
+    if (!t) return
+    const end = t.scrollLeft + t.clientWidth >= t.scrollWidth - 4
+    setPos({
+      index: end ? total - 1 : Math.round(t.scrollLeft / stepSize()),
+      start: t.scrollLeft < 4,
+      end,
+    })
+  }
+
+  useEffect(() => {
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const go = (dir) => track.current.scrollBy({ left: dir * stepSize(), behavior: 'smooth' })
+
   return (
-    <section className="section section--ivory" id="studio">
-      <div className="container">
-        <h2 className="section-title reveal"><span>04</span> / Selected studio artifacts</h2>
-        <div className="work">
-          {projects.map(({ title, tag, Preview }) => (
-            <article className="project reveal" key={title}>
-              <div className="project__preview"><Preview /></div>
-              <div className="project__meta">
-                <h3 className="project__title">{title}</h3>
-                <span className="tag">{tag}</span>
-                <a href="#enquire" className="project__link">View project <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
-          ))}
+    <section className="section work-section" id="work">
+      <Silk className="work-section__silk" strands={26} />
+      <div className="container split">
+        <div className="split__intro reveal">
+          <span className="pill">Our Work</span>
+          <h2 className="h2">Ideas we’ve brought to life.</h2>
+          <p className="lead">A glimpse into what we’ve been building.</p>
+          <button type="button" className="link-arrow" onClick={() => onContact()}>
+            Start yours <ArrowRight />
+          </button>
+        </div>
+
+        <div className="work reveal" style={{ '--d': '.1s' }}>
+          <div className="work__track" ref={track} onScroll={update} data-end={pos.end}>
+            {PROJECTS.map(({ name, type, Art }) => (
+              <article className="project" key={name}>
+                <div className="project__art"><Art /></div>
+                <div className="project__meta">
+                  <span>
+                    <span className="project__name">{name}</span>
+                    <span className="project__type">{type}</span>
+                  </span>
+                  <span className="round-btn" aria-hidden="true"><ArrowUpRight /></span>
+                </div>
+              </article>
+            ))}
+            <button type="button" className="project project--cta" onClick={() => onContact()}>
+              <span className="project__art"><IdeaArt /></span>
+              <span className="project__meta">
+                <span>
+                  <span className="project__name">Your idea</span>
+                  <span className="project__type">Next up — let’s build it</span>
+                </span>
+                <span className="round-btn" aria-hidden="true"><ArrowUpRight /></span>
+              </span>
+            </button>
+          </div>
+
+          <div className="work__controls">
+            <div className="work__arrows">
+              <button type="button" className="round-btn" aria-label="Previous project" disabled={pos.start} onClick={() => go(-1)}>
+                <ArrowLeft />
+              </button>
+              <button type="button" className="round-btn" aria-label="Next project" disabled={pos.end} onClick={() => go(1)}>
+                <ArrowRight />
+              </button>
+            </div>
+            <span className="work__count" aria-live="polite">
+              {pos.index + 1} / {total}
+            </span>
+          </div>
         </div>
       </div>
     </section>

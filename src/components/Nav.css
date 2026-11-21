@@ -1,0 +1,92 @@
+.nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  transition: background 0.35s, border-color 0.35s;
+}
+.nav--scrolled,
+.nav--open {
+  background: rgb(var(--bg-rgb) / 0.72);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom-color: var(--border);
+}
+
+.nav__inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 76px;
+}
+.nav__inner > .brand { justify-self: start; }
+
+.nav__menu { display: contents; }
+
+.nav__links { display: flex; gap: clamp(18px, 2.6vw, 38px); }
+.nav__links a {
+  position: relative;
+  display: block;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+.nav__links a:hover,
+.nav__links a[aria-current='true'] { color: var(--text); }
+.nav__links a::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent-bright);
+  box-shadow: 0 0 10px var(--accent-bright);
+  transform: translateX(-50%) scaleX(0);
+  transition: transform 0.35s var(--ease);
+}
+.nav__links a[aria-current='true']::after { transform: translateX(-50%) scaleX(1); }
+
+.nav__cta { justify-self: end; }
+
+.nav__toggle {
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: rgb(255 255 255 / 0.03);
+}
+.nav__toggle svg { width: 20px; height: 20px; }
+
+@media (max-width: 880px) {
+  .nav__inner { display: flex; justify-content: space-between; }
+  .nav__toggle { display: grid; }
+
+  .nav__menu {
+    position: absolute;
+    top: 76px;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 8px var(--gutter) 28px;
+    /* solid: nested backdrop-filters let page content bleed through in Chrome */
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.8);
+  }
+  .nav--open { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .nav--open .nav__menu { display: flex; }
+  .nav__menu nav { width: 100%; }
+  .nav__links { flex-direction: column; gap: 0; }
+  .nav__links a { padding: 14px 0; font-size: 1.05rem; border-bottom: 1px solid var(--border); }
+  .nav__links a::after { display: none; }
+  .nav__links a[aria-current='true'] { color: var(--accent-bright); }
+}
