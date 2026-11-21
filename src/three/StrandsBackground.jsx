@@ -3,85 +3,156 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { createBloom, createComposite } from './bloom.js'
 import { PALETTES } from './palette.js'
+import { createParticleUniverse } from './particles.js'
 import { STRAND_SHAPES, createStrandField, dampShape, mixShape, pointer, pointerIn, tickPointer } from './strands.js'
 import { useReducedMotion } from './utils.js'
 
 /*
-  The page's living background: a fixed canvas showing the energy flow.
-  Each section has its own pose (STRAND_SHAPES); as you scroll, the pose blends
-  from the section above the viewport centre to the one below it.
-  Rendering is manual: strands → HDR target → bloom blur chain → composite.
+  The page's living background, one fixed canvas:
+    · energy-flow strands whose pose blends section to section (top of the page)
+    · a particle universe that morphs logo → helix → wave → vortex → ring
+      through the lower sections, each shape pinned to a layout anchor
+    · a faint starfield (dark theme)
+  Everything renders into one HDR target → bloom chain → composite.
 */
 
-const ORDER = ['home', 'process', 'about', 'services', 'work', 'principles', 'contact']
+const STRAND_ORDER = ['home', 'process', 'about', 'services', 'work', 'principles', 'contact']
+
+// One particle shape per section; `anchor` is the element the shape sits on.
+const PARTICLE_SECTIONS = [
+  { id: 'process' },
+  { id: 'about', anchor: '.about__stage', fit: 'h', nominal: 2.2, factor: 0.8 },
+  // on portrait screens the cards stack, so the helix stands upright along them
+  { id: 'services', anchor: '.services', fit: 'w', nominal: 6, factor: 1.08, portrait: { fit: 'h', nominal: 6, factor: 1.0, rotZ: Math.PI / 2 } },
+  { id: 'work', anchor: '.work', fit: 'w', nominal: 8, factor: 1.25, dy: 0.45 },
+  { id: 'principles', anchor: '.quote', fit: 'h', nominal: 5.8, factor: 2.1 },
+  { id: 'contact', anchor: '.cta', fit: 'w', nominal: 4.6, factor: 1.02 },
+]
+
+const CAMERA_Z = 10
+const FOV = 35
+const WORLD_H = 2 * CAMERA_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2))
+
+// Between which two sections is the viewport centre, and how far along?
+function straddle(els) {
+  const mid = window.innerHeight / 2
+  const centers = els.map((el) => {
+    if (!el) return null
+    const r = el.getBoundingClientRect()
+    return r.top + r.height / 2
+  })
+  let a = 0
+  for (let i = 0; i < els.length; i++) if (centers[i] != null && centers[i] <= mid) a = i
+  const b = Math.min(els.length - 1, a + 1)
+  let f = 0
+  if (b !== a && centers[a] != null && centers[b] != null) {
+    f = Math.min(1, Math.max(0, (mid - centers[a]) / (centers[b] - centers[a])))
+    f = f * f * (3 - 2 * f)
+  }
+  if (a === 0 && centers[0] != null && centers[0] > mid) f = 0
+  return { a, b, f }
+}
 
 function Flow({ theme, reduced }) {
   const { gl, size } = useThree()
   const palette = PALETTES[theme] || PALETTES.dark
+  const small = size.width < 700
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const field = useMemo(() => createStrandField({ fibres: size.width < 700 ? 60 : 90, sheets: size.width < 700 ? 10 : 14, dust: size.width < 700 ? 160 : 300 }), [])
-  const strandScene = useMemo(() => {
+  const field = useMemo(() => createStrandField({ fibres: small ? 60 : 90, sheets: small ? 10 : 14, dust: small ? 160 : 300 }), [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const universe = useMemo(() => createParticleUniverse({ count: small ? 9000 : 20000, stars: small ? 400 : 900 }), [])
+  const camera = useMemo(() => {
+    const c = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100)
+    c.position.set(0, 0, CAMERA_Z)
+    return c
+  }, [])
+  const scene = useMemo(() => {
     const s = new THREE.Scene()
-    s.add(field.group)
+    s.add(field.group, universe.group)
     return s
-  }, [field])
+  }, [field, universe])
   const bloom = useMemo(() => createBloom(), [])
   const comp = useMemo(() => createComposite(bloom.textures), [bloom])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const current = useMemo(() => ({ ...STRAND_SHAPES.home }), [])
   const target = useMemo(() => ({}), [])
   const pv = useMemo(() => new THREE.Vector2(), [])
-  const sections = useRef([])
+  const els = useRef({ strands: [], particles: [], anchors: [] })
+  const morph = useRef(0)
 
   useEffect(
     () => () => {
       field.dispose()
+      universe.dispose()
       bloom.dispose()
       comp.dispose()
     },
-    [field, bloom, comp],
+    [field, universe, bloom, comp],
   )
   useEffect(() => {
     field.setPalette(palette.strands)
+    universe.setPalette(palette.particles)
     comp.mat.uniforms.uBg.value.set(palette.bg)
     comp.mat.uniforms.uAdditive.value = palette.strands.additive ? 1 : 0
     comp.mat.uniforms.uW.value.set(...palette.strands.bloom)
-  }, [field, comp, palette])
+  }, [field, universe, comp, palette])
   useEffect(() => {
     const dpr = gl.getPixelRatio()
     field.uniforms.uPixelRatio.value = dpr
+    universe.uniforms.uPixelRatio.value = dpr
     bloom.setSize(Math.round(size.width * dpr), Math.round(size.height * dpr))
-    sections.current = ORDER.map((id) => document.getElementById(id))
-  }, [field, bloom, gl, size])
+    camera.aspect = size.width / size.height
+    camera.updateProjectionMatrix()
+    // helix orientation follows the layout (see PARTICLE_SECTIONS)
+    const upright = size.width / size.height < 0.8
+    universe.uniforms.uTilt.value[2].setFromMatrix4(
+      new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.38, upright ? 0.35 : 0, upright ? Math.PI / 2 : -0.04)),
+    )
+    els.current = {
+      strands: STRAND_ORDER.map((id) => document.getElementById(id)),
+      particles: PARTICLE_SECTIONS.map((s) => document.getElementById(s.id)),
+      anchors: PARTICLE_SECTIONS.map((s) => (s.anchor ? document.querySelector(s.anchor) : null)),
+    }
+  }, [field, universe, bloom, camera, gl, size])
 
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1)
-    // which two sections straddle the viewport centre?
-    const mid = window.innerHeight / 2
-    const centers = sections.current.map((el) => {
-      if (!el) return null
-      const r = el.getBoundingClientRect()
-      return r.top + r.height / 2
-    })
-    let a = 0
-    for (let i = 0; i < ORDER.length; i++) if (centers[i] != null && centers[i] <= mid) a = i
-    const b = Math.min(ORDER.length - 1, a + 1)
-    let f = 0
-    if (b !== a && centers[a] != null && centers[b] != null) {
-      f = Math.min(1, Math.max(0, (mid - centers[a]) / (centers[b] - centers[a])))
-      f = f * f * (3 - 2 * f)
-    }
-    mixShape(STRAND_SHAPES[ORDER[a]], STRAND_SHAPES[ORDER[b]], f, target)
-    dampShape(current, target, Math.min(1, d * 2.5))
+    const t = reduced ? 3 : state.clock.elapsedTime
 
+    /* strands: blend poses between sections */
+    const s = straddle(els.current.strands)
+    mixShape(STRAND_SHAPES[STRAND_ORDER[s.a]], STRAND_SHAPES[STRAND_ORDER[s.b]], s.f, target)
+    dampShape(current, target, Math.min(1, d * 2.5))
     tickPointer(d)
     pointerIn({ left: 0, top: 0, width: size.width, height: size.height }, pv)
     field.uniforms.uPointer.value.copy(pv)
     field.uniforms.uPointerForce.value = reduced ? 0 : pointer.force
-    field.uniforms.uTime.value = reduced ? 3 : state.clock.elapsedTime
-    field.setShape(current, size.width / size.height, palette.strands.strength)
+    field.uniforms.uTime.value = t
+    const portrait = size.width / size.height < 0.8
+    // on phones the strands sit behind body text in the lower sections, so keep them quiet there
+    field.setShape(current, size.width / size.height, palette.strands.strength * (portrait && s.a >= 2 ? 0.5 : 1))
 
-    bloom.render(gl, strandScene)
+    /* particles: morph value + per-shape anchor transforms */
+    const p = straddle(els.current.particles)
+    const want = s.a === 0 && p.a === 0 && p.f === 0 ? 0 : p.a + p.f
+    morph.current += (want - morph.current) * Math.min(1, d * 3)
+    const u = universe.uniforms
+    u.uMorph.value = morph.current
+    u.uAlpha.value = Math.min(1, Math.max(0, (morph.current - 0.15) / 0.6))
+    u.uTime.value = t
+    u.uSpin.value[1] = reduced ? 0 : 0.45 * Math.sin(t * 0.35)
+    const k = WORLD_H / size.height
+    PARTICLE_SECTIONS.forEach((base, i) => {
+      const sec = portrait && base.portrait ? { ...base, ...base.portrait } : base
+      const el = els.current.anchors[i]
+      const xf = u.uXf.value[i]
+      if (!el) return xf.set(0, 0, 0, 1)
+      const r = el.getBoundingClientRect()
+      const span = (sec.fit === 'w' ? r.width : r.height) * k
+      xf.set((r.left + r.width / 2 - size.width / 2) * k, -(r.top + r.height * (0.5 + (sec.dy || 0)) - size.height / 2) * k, 0, (span / sec.nominal) * sec.factor)
+    })
+
+    bloom.render(gl, scene, camera)
     gl.setRenderTarget(null)
     gl.render(comp.scene, comp.cam)
   }, 1)

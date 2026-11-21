@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Words from './Words.jsx'
-import { ArrowRight, Sparkle } from './Icons.jsx'
+import { ArrowRight } from './Icons.jsx'
+import Logo from './Logo.jsx'
 import './CTA.css'
 
 // A bright "flame" card: leave an email here and the full contact form opens
@@ -12,7 +13,7 @@ export default function CTA({ onContact }) {
     <section className="section cta-wrap" id="contact">
       <div className="container">
         <div className="cta reveal">
-          <Sparkle className="cta__star" aria-hidden="true" />
+          <Logo className="cta__star" />
           <div className="cta__copy">
             <p className="micro cta__kicker">Start here</p>
             <h2 className="cta__title">

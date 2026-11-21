@@ -14,10 +14,10 @@
 
   --accent: #46d35b;          /* flame green */
   --accent-rgb: 70 211 91;
-  --accent-bright: #9cf06b;   /* lime glow */
+  --accent-bright: #bcfa03;   /* logo lime */
   --accent-soft: #e2f7b8;     /* white-hot core */
   --accent-deep: #239447;     /* bowl green */
-  --lime-rgb: 182 240 106;
+  --lime-rgb: 188 250 3;
   --marble-rgb: 174 203 170;
   --on-accent: #041307;
   --orb-hi: #3f7a4e;
@@ -205,12 +205,13 @@ img, svg { display: block; max-width: 100%; }
   letter-spacing: -0.03em;
 }
 .brand svg {
-  width: 24px;
-  height: 24px;
-  filter: drop-shadow(0 0 8px rgb(var(--accent-rgb) / 0.8));
+  width: 26px;
+  height: 22px;
+  color: #bcfa03;
+  filter: drop-shadow(0 0 10px rgb(188 250 3 / 0.45));
   transition: transform 0.6s var(--ease);
 }
-.brand:hover svg { transform: rotate(90deg); }
+.brand:hover svg { transform: translateY(-1px) scale(1.06); }
 
 /* ---------- Components ---------- */
 .pill {

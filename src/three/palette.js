@@ -5,7 +5,8 @@
 export const PALETTES = {
   dark: {
     bg: '#030503',
-    strands: { a: '#d2ff5c', b: '#5fb8d6', core: '#ffffe6', additive: true, strength: 1.1, core_glow: 0.6, bloom: [0.7, 0.8, 0.55, 0.28] },
+    strands: { a: '#c8ff26', b: '#5fb8d6', core: '#ffffe6', additive: true, strength: 1.1, core_glow: 0.6, bloom: [0.7, 0.8, 0.55, 0.28] },
+    particles: { a: '#bcfa03', b: '#46d35b', c: '#f4ffd8', additive: true, intensity: 1, size: 1.7, stars: 1 },
     flame: { a: '#06260e', b: '#2fb84b', c: '#d6f59a', intensity: 0.85 },
     glass: ['#ffffff', '#dcffd0', '#b8f59a', '#ffffff', '#cfe6cb', '#8fe79a'],
     solid: ['#aecbaa', '#46d35b', '#0f2416', '#b6f06a'],
@@ -35,6 +36,7 @@ export const PALETTES = {
   light: {
     bg: '#eef2ec',
     strands: { a: '#1f8a3a', b: '#3d8c86', core: '#2fb84b', additive: false, strength: 0.9, core_glow: 0.35, bloom: [0.7, 0.45, 0.3, 0.2] },
+    particles: { a: '#1b8a3a', b: '#0f5a24', c: '#7cc800', additive: false, intensity: 0.85, size: 1.6, stars: 0 },
     flame: { a: '#cfe9c4', b: '#6cd45f', c: '#f4ffd6', intensity: 0.72 },
     glass: ['#ffffff', '#e8f8df', '#c4ecaa', '#ffffff', '#dbeed6', '#a6e39a'],
     solid: ['#0f2416', '#23a045', '#aecbaa', '#6cc94a'],

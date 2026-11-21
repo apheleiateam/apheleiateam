@@ -134,13 +134,16 @@ npm run dev        # dev server at http://localhost:5173
     ├── theme.jsx           # Light/dark theme provider + toggle state
     ├── App.jsx             # Page layout and the shared contact-dialog state
     ├── content.js          # Email, nav links, social links, enquiry topics
+    ├── brand/logo.js       # The Apheleia "A" mark as vector paths (used everywhere)
     ├── index.css           # Design tokens, base styles, shared utilities
     ├── hooks/
     │   ├── interactions.js # 3D tilt + glare for cards, magnetic buttons
     │   ├── useReveal.js    # Fades sections in as they scroll into view
     │   └── useScrollSpy.js # Highlights the nav link for the current section
     ├── three/              # WebGL scenes (loaded only when needed)
-    │   ├── strands.js       # Light-strand field (shaders): fibres, haze, dust, cursor
+    │   ├── strands.js       # Energy-flow strands (shaders): light sheets, fibres, dust, cursor
+    │   ├── particles.js     # Particle universe: logo → helix → wave → vortex → ring, + starfield
+    │   ├── bloom.js         # HDR bloom chain used by the strands and particles
     │   ├── StrandsBackground.jsx # Fixed page background; strand pose morphs per section
     │   ├── RibbonCanvas.jsx # Hero: glass card ribbon refracting the strands
     │   ├── StoryCanvas.jsx  # Process: liquid → board → cards land → launch
@@ -178,6 +181,8 @@ Most copy lives right next to the component that renders it, in a constant at th
 | Process steps | `STAGES` in `src/components/Story.jsx` |
 | 3D scene colours | `src/three/palette.js` |
 | Light-strand pose per section | `STRAND_SHAPES` in `src/three/strands.js` |
+| Which particle shape sits where | `PARTICLE_SECTIONS` in `src/three/StrandsBackground.jsx` |
+| Logo artwork | `src/brand/logo.js` (component: `src/components/Logo.jsx`) |
 | Marquee words | `LIME` / `GLASS` in `src/components/Marquee.jsx` |
 | Principle quotes and toolkit | `PRINCIPLES` and `TOOLKIT` in `src/components/Principles.jsx` |
 | About-section stats | `STATS` in `src/components/About.jsx` |
@@ -189,7 +194,7 @@ Most copy lives right next to the component that renders it, in a constant at th
 |:-:|---|---|---|
 | ![#030503](https://placehold.co/18x18/030503/030503.png) | Night | `#030503` | Dark background |
 | ![#46D35B](https://placehold.co/18x18/46D35B/46D35B.png) | Flame | `#46D35B` | Primary accent, buttons |
-| ![#9CF06B](https://placehold.co/18x18/9CF06B/9CF06B.png) | Lime glow | `#9CF06B` | Highlights, glows |
+| ![#BCFA03](https://placehold.co/18x18/BCFA03/BCFA03.png) | Logo lime | `#BCFA03` | The mark, highlights, glows |
 | ![#E2F7B8](https://placehold.co/18x18/E2F7B8/E2F7B8.png) | White-hot core | `#E2F7B8` | Gradient cores |
 | ![#239447](https://placehold.co/18x18/239447/239447.png) | Bowl green | `#239447` | Deep accent |
 | ![#AECBAA](https://placehold.co/18x18/AECBAA/AECBAA.png) | Celadon marble | `#AECBAA` | Secondary surfaces |

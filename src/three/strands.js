@@ -186,11 +186,11 @@ const coreFrag = COMMON + LOOK + /* glsl */ `
 export const STRAND_SHAPES = {
   home: { vx: -0.6, vy: -0.08, angle: 0, open: 1.3, len: 1.5, spread: 0.36, wave: 0.045, intensity: 1 },
   process: { vx: 0.92, vy: 0.2, angle: Math.PI, open: 1.0, len: 1.7, spread: 0.39, wave: 0.05, intensity: 0.8 },
-  about: { vx: 0.8, vy: 0.05, angle: Math.PI, open: 1.1, len: 1.6, spread: 0.39, wave: 0.05, intensity: 0.9 },
-  services: { vx: -0.85, vy: 0.6, angle: -0.6, open: 0.8, len: 1.9, spread: 0.45, wave: 0.06, intensity: 0.85 },
-  work: { vx: 0.05, vy: 1.2, angle: -Math.PI / 2, open: 0.9, len: 1.8, spread: 0.42, wave: 0.06, intensity: 0.85 },
-  principles: { vx: -0.72, vy: -0.25, angle: 0.25, open: 1.2, len: 1.6, spread: 0.36, wave: 0.05, intensity: 0.9 },
-  contact: { vx: 0.5, vy: -0.05, angle: Math.PI * 0.92, open: 1.4, len: 1.4, spread: 0.33, wave: 0.045, intensity: 1 },
+  about: { vx: 0.8, vy: 0.05, angle: Math.PI, open: 1.1, len: 1.6, spread: 0.39, wave: 0.05, intensity: 0.5 },
+  services: { vx: -0.85, vy: 0.6, angle: -0.6, open: 0.8, len: 1.9, spread: 0.45, wave: 0.06, intensity: 0.32 },
+  work: { vx: 0.05, vy: 1.2, angle: -Math.PI / 2, open: 0.9, len: 1.8, spread: 0.42, wave: 0.06, intensity: 0.28 },
+  principles: { vx: -0.72, vy: -0.25, angle: 0.25, open: 1.2, len: 1.6, spread: 0.36, wave: 0.05, intensity: 0.24 },
+  contact: { vx: 0.5, vy: -0.05, angle: Math.PI * 0.92, open: 1.4, len: 1.4, spread: 0.33, wave: 0.045, intensity: 0.32 },
 }
 const SHAPE_KEYS = ['vx', 'vy', 'angle', 'open', 'len', 'spread', 'wave', 'intensity']
 

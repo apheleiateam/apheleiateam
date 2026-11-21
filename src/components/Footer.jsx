@@ -1,5 +1,6 @@
 import { EMAIL, NAV_LINKS, SOCIALS } from '../content.js'
-import { Instagram, LinkedIn, Sparkle, XLogo } from './Icons.jsx'
+import { Instagram, LinkedIn, XLogo } from './Icons.jsx'
+import Logo from './Logo.jsx'
 import './Footer.css'
 
 export default function Footer() {
@@ -9,7 +10,7 @@ export default function Footer() {
         <div className="footer__panel glass">
         <div className="footer__row">
           <a href="#home" className="brand">
-            <Sparkle />
+            <Logo className="brand__mark" />
             <span>Apheleia</span>
           </a>
           <nav aria-label="Footer">

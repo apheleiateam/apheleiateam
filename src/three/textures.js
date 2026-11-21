@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { SPARKLE } from '../components/Icons.jsx'
+import { LOGO_PATHS, LOGO_VIEWBOX } from '../brand/logo.js'
 
 // Canvas-drawn textures for the story board and task cards.
 
@@ -39,10 +39,11 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
   g.fillRect(sx, 28, 2, BH - 56)
 
   g.save()
-  g.translate(34, 38)
-  g.scale(28 / 24, 28 / 24)
-  g.fillStyle = pal.accent
-  g.fill(new Path2D(SPARKLE))
+  g.translate(32, 38)
+  g.scale(32 / LOGO_VIEWBOX[2], 32 / LOGO_VIEWBOX[2])
+  g.translate(-LOGO_VIEWBOX[0], -LOGO_VIEWBOX[1])
+  g.fillStyle = '#BCFA03'
+  LOGO_PATHS.forEach((d) => g.fill(new Path2D(d)))
   g.restore()
   g.fillStyle = pal.panelText
   g.font = '700 32px Quicksand, "Varela Round", sans-serif'

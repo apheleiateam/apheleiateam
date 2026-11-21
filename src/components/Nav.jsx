@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { NAV_LINKS } from '../content.js'
 import useScrollSpy from '../hooks/useScrollSpy.js'
 import { useTheme } from '../theme.jsx'
-import { ArrowRight, Close, Menu, Moon, Sparkle, Sun } from './Icons.jsx'
+import { ArrowRight, Close, Menu, Moon, Sun } from './Icons.jsx'
+import Logo from './Logo.jsx'
 import './Nav.css'
 
 const IDS = NAV_LINKS.map((l) => l.id)
@@ -61,7 +62,7 @@ export default function Nav({ onContact }) {
       <div className="container">
         <div className="nav__bar glass">
         <a href="#home" className="brand nav__side" onClick={close}>
-          <Sparkle />
+          <Logo className="brand__mark" />
           <span>Apheleia</span>
         </a>
 
