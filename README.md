@@ -92,7 +92,7 @@ Ideas we've brought to life.
 
 ## The website
 
-This repository is the source for **[apheleiateam.vercel.app](https://apheleiateam.vercel.app)** — a single-page site built with React and Vite. No component library and no CSS framework: every illustration on the page is hand-written inline SVG, and all styling is plain CSS driven by design tokens.
+This repository is the source for **[apheleiateam.vercel.app](https://apheleiateam.vercel.app)** — a single-page site built with React and Vite. No component library and no CSS framework: the hero ribbon and the process story are real-time 3D (three.js), the other illustrations are hand-written inline SVG, and all styling is plain CSS driven by design tokens.
 
 ### Tech stack
 
@@ -100,6 +100,7 @@ This repository is the source for **[apheleiateam.vercel.app](https://apheleiate
 |---|---|
 | UI | [React 18](https://react.dev) |
 | Build tool | [Vite 5](https://vitejs.dev) with `@vitejs/plugin-react` |
+| 3D | [three.js](https://threejs.org) via [React Three Fiber](https://r3f.docs.pmnd.rs) — lazy-loaded into its own chunk |
 | Styling | Plain CSS — one stylesheet per component, tokens in `src/index.css` |
 | Type | [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) (display) + [Inter](https://fonts.google.com/specimen/Inter) (text), via Google Fonts |
 | Hosting | [Vercel](https://vercel.com) |
@@ -125,24 +126,32 @@ npm run dev        # dev server at http://localhost:5173
 
 ```text
 .
-├── index.html              # HTML shell: meta tags, fonts, favicon
+├── index.html              # HTML shell: meta, fonts, favicon, pre-paint theme script (?theme=)
 ├── public/
 │   └── favicon.svg         # Sparkle mark
 └── src/
-    ├── main.jsx            # Entry point (also reads the ?theme= URL param)
+    ├── main.jsx            # Entry point
+    ├── theme.jsx           # Light/dark theme provider + toggle state
     ├── App.jsx             # Page layout and the shared contact-dialog state
     ├── content.js          # Email, nav links, social links, enquiry topics
     ├── index.css           # Design tokens, base styles, shared utilities
     ├── hooks/
     │   ├── useReveal.js    # Fades sections in as they scroll into view
     │   └── useScrollSpy.js # Highlights the nav link for the current section
+    ├── three/              # WebGL scenes (loaded only when needed)
+    │   ├── RibbonCanvas.jsx # Hero: twisting ribbon of cards + floating labels
+    │   ├── StoryCanvas.jsx  # Process: liquid → board → cards land → launch
+    │   ├── palette.js       # 3D colours for light and dark
+    │   ├── textures.js      # Canvas-drawn board and card UI textures
+    │   ├── Env.jsx          # Procedural studio reflections
+    │   └── utils.js         # Easing, seeded random, in-view / reduced-motion hooks
     └── components/         # One .jsx + .css pair per section
-        ├── Nav             # Fixed glass nav with scroll-spy and mobile menu
-        ├── Hero            # "Ideas to Impact." with the orb illustration
+        ├── Nav             # Fixed glass nav, scroll-spy, theme toggle, mobile menu
+        ├── Hero            # "Ideas to Impact." over the 3D card ribbon
+        ├── Story           # Pinned, scroll-driven 3D process (Discover → Launch)
         ├── About           # Story, arch illustration and stats
         ├── Services        # Four service cards with pointer-following glow
         ├── Work            # Horizontally scrolling project carousel
-        ├── Process         # Discover → Design → Develop → Launch
         ├── Principles      # Rotating principle quotes and toolkit
         ├── CTA             # "Ready to create something extraordinary?"
         ├── Footer
@@ -160,14 +169,15 @@ Most copy lives right next to the component that renders it, in a constant at th
 | Contact email, nav links, social links, enquiry topics | `src/content.js` |
 | Service cards | `SERVICES` in `src/components/Services.jsx` |
 | Projects in the carousel | `PROJECTS` in `src/components/Work.jsx` |
-| Process steps | `STEPS` in `src/components/Process.jsx` |
+| Process steps | `STAGES` in `src/components/Story.jsx` |
+| 3D scene colours | `src/three/palette.js` |
 | Principle quotes and toolkit | `PRINCIPLES` and `TOOLKIT` in `src/components/Principles.jsx` |
 | About-section stats | `STATS` in `src/components/About.jsx` |
 | Page title and meta description | `index.html` |
 
 ### Brand & theming
 
-The site uses a dark glass theme built from the Apheleia palette. All colours are CSS custom properties at the top of `src/index.css`, so a change there flows through every section and illustration.
+The site ships a **light and a dark theme**, both built from the Apheleia palette. It follows the visitor's OS setting until they use the sun/moon toggle in the nav; the choice is remembered. All colours are CSS custom properties at the top of `src/index.css` (dark is the base, `[data-theme='light']` overrides it), so a change there flows through every section and illustration. The WebGL scenes take their colours from `src/three/palette.js`.
 
 | | Colour | Hex | Use |
 |:-:|---|---|---|
@@ -178,7 +188,7 @@ The site uses a dark glass theme built from the Apheleia palette. All colours ar
 | ![#263746](https://placehold.co/18x18/263746/263746.png) | Slate | `#263746` | Illustration shading |
 | ![#060D12](https://placehold.co/18x18/060D12/060D12.png) | Night | `#060D12` | Page background |
 
-**Preview the violet variant** by adding `?theme=violet` to the URL — for example [apheleiateam.vercel.app/?theme=violet](https://apheleiateam.vercel.app/?theme=violet). To add another palette, create a `[data-theme='your-name']` block in `src/index.css` that overrides the same tokens.
+**Preview a theme** without changing your saved choice by adding `?theme=light` or `?theme=dark` to the URL — for example [apheleiateam.vercel.app/?theme=light](https://apheleiateam.vercel.app/?theme=light).
 
 ### How the contact form works
 
