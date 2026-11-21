@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { play } from '../sound.js'
 import { TEAM } from '../content.js'
 import Words from './Words.jsx'
 import { ArrowLeft, ArrowRight } from './Icons.jsx'
@@ -19,6 +20,13 @@ export default function Team() {
   const cards = useRef([])
   const state = useRef({ spin: 0, target: 0, vel: 0, drag: null, hover: false, visible: false, lastStep: 0 })
   const [front, setFront] = useState(0)
+
+  // a liquid "blip-blop" whenever a new person comes to the front (arrows, click, drag or swipe)
+  const lastFront = useRef(0)
+  useEffect(() => {
+    if (front !== lastFront.current) play('card')
+    lastFront.current = front
+  }, [front])
 
   const goTo = useCallback((i) => {
     const s = state.current
@@ -151,6 +159,7 @@ export default function Team() {
               <button
                 key={m.email}
                 type="button"
+                data-sound="none"
                 className={`member${i === front ? ' is-front' : ''}`}
                 style={{ '--a': `${i * STEP}deg` }}
                 ref={(el) => (cards.current[i] = el)}
@@ -166,7 +175,7 @@ export default function Team() {
         </div>
 
         <div className="team__caption">
-          <button type="button" className="round-btn" aria-label="Previous person" onClick={() => goTo(mod(front - 1, N))}>
+          <button type="button" data-sound="none" className="round-btn" aria-label="Previous person" onClick={() => goTo(mod(front - 1, N))}>
             <ArrowLeft />
           </button>
           <div className="team__who" aria-live="polite" key={front}>
@@ -178,7 +187,7 @@ export default function Team() {
               {person.email}
             </a>
           </div>
-          <button type="button" className="round-btn" aria-label="Next person" onClick={() => goTo(mod(front + 1, N))}>
+          <button type="button" data-sound="none" className="round-btn" aria-label="Next person" onClick={() => goTo(mod(front + 1, N))}>
             <ArrowRight />
           </button>
         </div>

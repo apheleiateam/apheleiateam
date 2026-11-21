@@ -94,3 +94,14 @@
   .nav__panel .nav__links a::after { display: none; }
   .nav__panel .nav__links a[aria-current='true'] { color: var(--accent-bright); }
 }
+
+/* sound toggle: the waves ripple gently while sound is on */
+.nav__sound { width: 42px; height: 42px; }
+.nav__sound svg { width: 18px; height: 18px; }
+.nav__sound.is-on { color: var(--accent-bright); }
+.nav__sound .sound-wave { transform-box: fill-box; transform-origin: left center; }
+.nav__sound.is-on .sound-wave { animation: sound-ripple 2.4s ease-in-out infinite; }
+.nav__sound.is-on .sound-wave--2 { animation-delay: 0.3s; }
+@keyframes sound-ripple { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.82); } }
+@media (max-width: 380px) { .nav__sound { display: none; } }
+@media (prefers-reduced-motion: reduce) { .nav__sound .sound-wave { animation: none !important; } }

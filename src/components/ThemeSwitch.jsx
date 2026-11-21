@@ -32,6 +32,7 @@ export default function ThemeSwitch() {
     <button
       type="button"
       role="switch"
+      data-sound="theme"
       aria-checked={dark}
       aria-label="Dark theme"
       title={`Switch to ${dark ? 'light' : 'dark'} theme`}

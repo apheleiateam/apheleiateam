@@ -12,66 +12,9 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 
 export const COLUMN_TOP = 4.52 // y of the brazier rim, where the flame starts
 
-/* ---------- veined marble texture ---------- */
-function hash(x, y) {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453
-  return s - Math.floor(s)
-}
-function noise(x, y) {
-  const xi = Math.floor(x)
-  const yi = Math.floor(y)
-  const xf = x - xi
-  const yf = y - yi
-  const u = xf * xf * (3 - 2 * xf)
-  const v = yf * yf * (3 - 2 * yf)
-  const a = hash(xi, yi)
-  const b = hash(xi + 1, yi)
-  const c = hash(xi, yi + 1)
-  const d = hash(xi + 1, yi + 1)
-  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
-function fbm(x, y) {
-  let v = 0
-  let a = 0.5
-  for (let i = 0; i < 5; i++) {
-    v += a * noise(x, y)
-    x *= 2.03
-    y *= 2.03
-    a *= 0.5
-  }
-  return v
-}
-function marbleTexture() {
-  const S = 512
-  const c = document.createElement('canvas')
-  c.width = S
-  c.height = S
-  const g = c.getContext('2d')
-  const img = g.createImageData(S, S)
-  const base = [233, 239, 229]
-  const vein = [150, 170, 152]
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      const nx = x / S
-      const ny = y / S
-      const turb = fbm(nx * 5, ny * 5)
-      const v1 = Math.abs(Math.sin((nx * 3 + ny * 9 + turb * 7) * Math.PI))
-      const v2 = Math.abs(Math.sin((nx * 11 - ny * 4 + fbm(nx * 9 + 3, ny * 9) * 5) * Math.PI))
-      const line = Math.pow(1 - v1, 18) * 0.85 + Math.pow(1 - v2, 30) * 0.45
-      const cloud = (fbm(nx * 3 + 7, ny * 3) - 0.5) * 0.08
-      const k = Math.min(1, line)
-      const i = (y * S + x) * 4
-      for (let ch = 0; ch < 3; ch++) img.data[i + ch] = base[ch] * (1 - k) + vein[ch] * k + cloud * 255
-      img.data[i + 3] = 255
-    }
-  }
-  g.putImageData(img, 0, 0)
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 8
-  return tex
-}
+/* The veined marble texture (fbm noise veins) is pre-baked to /textures/marble.webp —
+   generating it in JS at runtime froze the page for up to seconds on slower devices. */
+export const MARBLE_URL = '/textures/marble.webp'
 
 /* ---------- profile helpers ---------- */
 // lathe profile points (r, y) with arcs for tori and coves
@@ -197,22 +140,18 @@ function brazier(y0) {
   return lathe(p)
 }
 
-export function buildColumn() {
-  const marble = new THREE.MeshPhysicalMaterial({
-    map: marbleTexture(),
-    color: '#ffffff',
-    roughness: 0.32,
+// `marble` is the loaded marble texture (or null on failure → plain marble colour)
+export function buildColumn(marble = null) {
+  const stone = new THREE.MeshStandardMaterial({
+    map: marble,
+    color: marble ? '#ffffff' : '#e7efe3',
+    roughness: 0.3,
     metalness: 0,
-    clearcoat: 0.45,
-    clearcoatRoughness: 0.28,
-    sheen: 0.35,
-    sheenColor: '#e9f5e4',
   })
-  const bronze = new THREE.MeshPhysicalMaterial({
+  const bronze = new THREE.MeshStandardMaterial({
     color: '#1d4a2a',
     metalness: 0.75,
-    roughness: 0.32,
-    clearcoat: 0.6,
+    roughness: 0.28,
     emissive: '#2f6a12',
     emissiveIntensity: 0.25,
   })
@@ -224,14 +163,13 @@ export function buildColumn() {
   const body = mergeGeometries([steps, flat(atticBase(0.26)), flat(flutedShaft(0.7, 3.0, 0.44, 0.38)), ionicCapital(3.7)])
 
   const group = new THREE.Group()
-  const column = new THREE.Mesh(body, marble)
+  const column = new THREE.Mesh(body, stone)
   const bowl = new THREE.Mesh(brazier(4.07), bronze)
   group.add(column, bowl)
   group.userData.dispose = () => {
     body.dispose()
     bowl.geometry.dispose()
-    marble.map.dispose()
-    marble.dispose()
+    stone.dispose()
     bronze.dispose()
   }
   return group

@@ -42,12 +42,25 @@ export function brandAtlas(texture) {
   const c = document.createElement('canvas')
   c.width = img.width
   c.height = img.height
-  const g = c.getContext('2d')
+  const g = c.getContext('2d', { willReadFrequently: true })
   g.drawImage(img, 0, 0)
   const data = g.getImageData(0, 0, c.width, c.height)
   const glow = g.createImageData(c.width, c.height)
   const px = data.data
+  const memo = new Map() // rgb → [r, g, b, hot]: a swatch atlas has only a handful of colours
   for (let i = 0; i < px.length; i += 4) {
+    const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2]
+    const hit = memo.get(key)
+    if (hit) {
+      px[i] = hit[0]
+      px[i + 1] = hit[1]
+      px[i + 2] = hit[2]
+      glow.data[i] = hit[3] ? 188 : 0
+      glow.data[i + 1] = hit[3] ? 250 : 0
+      glow.data[i + 2] = hit[3] ? 3 : 0
+      glow.data[i + 3] = 255
+      continue
+    }
     tmp.setRGB(px[i] / 255, px[i + 1] / 255, px[i + 2] / 255, THREE.SRGBColorSpace)
     tmp.getHSL(hsl, THREE.SRGBColorSpace)
     const deg = hsl.h * 360
@@ -64,6 +77,7 @@ export function brandAtlas(texture) {
     px[i] = out.r * 255
     px[i + 1] = out.g * 255
     px[i + 2] = out.b * 255
+    memo.set(key, [px[i], px[i + 1], px[i + 2], hot])
     glow.data[i] = hot ? 188 : 0
     glow.data[i + 1] = hot ? 250 : 0
     glow.data[i + 2] = hot ? 3 : 0
@@ -74,7 +88,7 @@ export function brandAtlas(texture) {
   const gc = document.createElement('canvas')
   gc.width = c.width
   gc.height = c.height
-  gc.getContext('2d').putImageData(glow, 0, 0)
+  gc.getContext('2d', { willReadFrequently: true }).putImageData(glow, 0, 0)
   const emissiveMap = new THREE.CanvasTexture(gc)
   for (const t of [map, emissiveMap]) {
     t.flipY = texture.flipY
@@ -94,7 +108,8 @@ export function restyle(root, recipe, fallback) {
     const params = recipe[name] ?? fallback
     if (!params) return
     if (!made.has(name)) {
-      const m = new THREE.MeshPhysicalMaterial(params)
+      const physical = 'clearcoat' in params || 'transmission' in params || 'sheen' in params
+      const m = physical ? new THREE.MeshPhysicalMaterial(params) : new THREE.MeshStandardMaterial(params)
       m.name = name
       made.set(name, m)
     }

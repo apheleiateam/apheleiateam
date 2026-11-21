@@ -51,6 +51,8 @@ export function ThemeProvider({ children }) {
         document.documentElement.dataset.theme = next
         flushSync(() => setTheme(next))
       }
+      // a theme switch is a one-off burst of work: don't let it count as a slow device
+      window.dispatchEvent(new Event('perf:busy'))
       const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
       if (!origin || calm || !document.startViewTransition) return apply()
       const root = document.documentElement

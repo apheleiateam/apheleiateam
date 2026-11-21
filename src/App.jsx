@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useMemo, useState } from 'react'
+import { Suspense, lazy, memo, useCallback, useEffect, useMemo, useState } from 'react'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import About from './components/About.jsx'
@@ -14,7 +14,10 @@ import Team from './components/Team.jsx'
 import useReveal from './hooks/useReveal.js'
 import { useMagnetic } from './hooks/interactions.js'
 import { useTheme } from './theme.jsx'
-import { hasWebGL } from './three/utils.js'
+import { useQuality } from './perf.js'
+import { afterIntroBeat, hold, splashActive } from './splash.js'
+import CanvasBoundary from './components/CanvasBoundary.jsx'
+import { hasWebGL, whenIdle } from './three/utils.js'
 
 const StrandsBackground = lazy(() => import('./three/StrandsBackground.jsx'))
 
@@ -33,9 +36,61 @@ function SvgDefs() {
   )
 }
 
-export default function App() {
+// The living background. It alone reads the theme here, so a theme switch
+// re-renders only the pieces that use it — not the whole page.
+function Background() {
   const { theme } = useTheme()
   const webgl = useMemo(hasWebGL, [])
+  const { features } = useQuality()
+  const live = webgl && features !== 'static'
+  if (live) hold('bg') // the intro stays up until the background has warmed up
+  // behind the intro the background mounts at once; otherwise at the first idle moment
+  const [bgReady, setBgReady] = useState(false)
+  useEffect(() => {
+    let on = true
+    if (live) (splashActive() ? afterIntroBeat() : whenIdle(900)).then(() => on && setBgReady(true))
+    return () => {
+      on = false
+    }
+  }, [live])
+
+  if (live)
+    return (
+      bgReady && (
+        <CanvasBoundary>
+          <Suspense fallback={null}>
+            <StrandsBackground theme={theme} />
+          </Suspense>
+        </CanvasBoundary>
+      )
+    )
+  return (
+    <div className="ambient" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </div>
+  )
+}
+
+// The page sections; memoised so opening the contact dialog doesn't re-render them.
+const Sections = memo(function Sections({ onContact }) {
+  return (
+    <main>
+      <Hero onContact={onContact} />
+      <Story />
+      <Marquee />
+      <About />
+      <Services onContact={onContact} />
+      <Work onContact={onContact} />
+      <Team />
+      <Principles onContact={onContact} />
+      <CTA onContact={onContact} />
+    </main>
+  )
+})
+
+export default function App() {
   const [contact, setContact] = useState({ open: false, topic: '', email: '' })
 
   // onContact() · onContact('UI/UX Design') to preselect an interest · onContact({ email }) to prefill
@@ -51,29 +106,9 @@ export default function App() {
   return (
     <>
       <SvgDefs />
-      {webgl ? (
-        <Suspense fallback={null}>
-          <StrandsBackground theme={theme} />
-        </Suspense>
-      ) : (
-        <div className="ambient" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      )}
+      <Background />
       <Nav onContact={openContact} />
-      <main>
-        <Hero onContact={openContact} />
-        <Story />
-        <Marquee />
-        <About />
-        <Services onContact={openContact} />
-        <Work onContact={openContact} />
-        <Team />
-        <Principles onContact={openContact} />
-        <CTA onContact={openContact} />
-      </main>
+      <Sections onContact={openContact} />
       <Footer />
       <ContactDialog open={contact.open} topic={contact.topic} email={contact.email} onClose={closeContact} />
     </>

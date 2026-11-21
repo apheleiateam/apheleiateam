@@ -89,7 +89,8 @@ export function createBloom({ sharpScale = 0.75, levels = [4, 8, 16] } = {}) {
     }
   }
 
-  const render = (gl, scene, sceneCam = cam) => {
+  // iterations: blur passes per level (2 = smooth, 1 = lite for slower GPUs)
+  const render = (gl, scene, sceneCam = cam, iterations = 2) => {
     const prev = gl.getRenderTarget()
     gl.setClearColor(0x000000, 0)
     gl.setRenderTarget(sharp)
@@ -97,7 +98,7 @@ export function createBloom({ sharpScale = 0.75, levels = [4, 8, 16] } = {}) {
     gl.render(scene, sceneCam)
     let input = sharp.texture
     for (const L of chain) {
-      for (let pass = 0; pass < 2; pass++) {
+      for (let pass = 0; pass < iterations; pass++) {
         blurMat.uniforms.uTex.value = input
         blurMat.uniforms.uDir.value.set(1 / L.w, 0)
         gl.setRenderTarget(L.a)

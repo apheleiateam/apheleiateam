@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { NAV_LINKS } from '../content.js'
 import useScrollSpy from '../hooks/useScrollSpy.js'
-import { ArrowRight, Close, Menu } from './Icons.jsx'
+import { ArrowRight, Close, Menu, SoundOff, SoundOn } from './Icons.jsx'
 import ThemeSwitch from './ThemeSwitch.jsx'
+import { useSound } from '../sound.js'
+import { viewport } from '../layout.js'
 import Logo from './Logo.jsx'
 import './Nav.css'
 
@@ -22,6 +24,23 @@ function Links({ active, onNavigate }) {
   )
 }
 
+function SoundToggle() {
+  const [on, setOn] = useSound()
+  return (
+    <button
+      type="button"
+      data-sound="none"
+      className={`round-btn nav__sound${on ? ' is-on' : ''}`}
+      aria-pressed={on}
+      aria-label="Interface sounds"
+      title={on ? 'Mute sounds' : 'Turn sounds on'}
+      onClick={() => setOn(!on)}
+    >
+      {on ? <SoundOn /> : <SoundOff />}
+    </button>
+  )
+}
+
 export default function Nav({ onContact }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -29,7 +48,7 @@ export default function Nav({ onContact }) {
   const close = () => setOpen(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onScroll = () => setScrolled(viewport.y > 20)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -61,6 +80,7 @@ export default function Nav({ onContact }) {
         </nav>
 
         <div className="nav__side nav__actions">
+          <SoundToggle />
           <ThemeSwitch />
           <button type="button" className="btn btn--outline btn--sm nav__cta" onClick={talk}>
             [ Let’s Talk ]

@@ -17,10 +17,161 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- non-blocking font CSS: the intro paints immediately, text swaps in when fonts land -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
+    <style>
+      /* ---------- Intro splash: inline so it paints before any JS loads. Only
+         compositor animations (transform / opacity), so it stays smooth while the
+         page loads and warms up its 3D behind it. src/splash.js decides when it leaves. */
+      html.is-loading body { overflow: hidden; }
+      .splash {
+        --s-bg: #030503;
+        --s-front: linear-gradient(180deg, #d9ff5c, #bcfa03 40%, #46d35b);
+        --s-back: #239447;
+        --s-line: rgb(188 250 3 / 0.55);
+        --s-text: #f1f7ee;
+        position: fixed; inset: 0; z-index: 100;
+        display: grid; place-items: center;
+        background: var(--s-bg); color: var(--s-text);
+        animation: splash-failsafe 0.6s ease 7s forwards; /* never trap the page if JS fails */
+      }
+      [data-theme='light'] .splash {
+        --s-bg: #ffffff;
+        --s-front: linear-gradient(180deg, #c8f53a, #8fd61a 45%, #23a045);
+        --s-back: #1c7a37;
+        --s-line: rgb(35 160 69 / 0.5);
+        --s-text: #0c1f12;
+      }
+      /* wavy liquid edge under the curtain, seen as it slides up */
+      .splash__curtain-edge {
+        position: absolute; left: 0; right: 0; top: 100%; height: 70px; pointer-events: none;
+        background: var(--s-bg); transform: scaleY(-1);
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C 25 2 75 2 100 12 S 175 22 200 12 V24 H0Z' fill='%23000'/%3E%3C/svg%3E") repeat-x 0 0 / 50% 100%;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C 25 2 75 2 100 12 S 175 22 200 12 V24 H0Z' fill='%23000'/%3E%3C/svg%3E") repeat-x 0 0 / 50% 100%;
+      }
+      .splash__center { position: relative; display: grid; justify-items: center; gap: 22px; }
+      .splash__mark {
+        position: relative; width: 132px; aspect-ratio: 535 / 442;
+        animation: splash-jelly 0.9s cubic-bezier(.3, 1.6, .5, 1) 1.45s both;
+      }
+      .splash__liquid {
+        position: absolute; inset: 0; overflow: hidden;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='500 290 535 442'%3E%3Cpath d='M725 318 C740 292 792 292 807 318 L913 499 C875 493 790 503 731 528 C680 548 555 655 530 727 C518 724 502 708 511 688 Z'/%3E%3Cpath d='M645 727 C663 658 758 547 921 515 L1022 682 C1034 700 1024 727 1000 727 L902 727 C890 727 882 722 876 713 L822 628 C808 611 780 612 762 626 C722 650 668 690 645 727 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='500 290 535 442'%3E%3Cpath d='M725 318 C740 292 792 292 807 318 L913 499 C875 493 790 503 731 528 C680 548 555 655 530 727 C518 724 502 708 511 688 Z'/%3E%3Cpath d='M645 727 C663 658 758 547 921 515 L1022 682 C1034 700 1024 727 1000 727 L902 727 C890 727 882 722 876 713 L822 628 C808 611 780 612 762 626 C722 650 668 690 645 727 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+      }
+      .splash__level {
+        position: absolute; inset: -12% -10% -6%;
+        transform: translate3d(0, 102%, 0);
+        animation: splash-rise 1.15s cubic-bezier(.2, .75, .25, 1) 0.55s forwards;
+      }
+      .splash__wave {
+        position: absolute; top: 0; left: 0; width: 200%; height: 100%;
+        animation: splash-slosh 1.5s linear infinite;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C 25 2 75 2 100 12 S 175 22 200 12 V24 H0Z' fill='%23000'/%3E%3C/svg%3E") repeat-x 0 0 / 25% 14px, linear-gradient(#000 0 0) no-repeat 0 13px / 100% 100%;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C 25 2 75 2 100 12 S 175 22 200 12 V24 H0Z' fill='%23000'/%3E%3C/svg%3E") repeat-x 0 0 / 25% 14px, linear-gradient(#000 0 0) no-repeat 0 13px / 100% 100%;
+      }
+      .splash__wave--back { background: var(--s-back); top: 3%; opacity: 0.85; animation-duration: 2.3s; animation-direction: reverse; }
+      .splash__wave--front { background: var(--s-front); top: 9%; }
+      .splash__shine {
+        position: absolute; inset: -20% -60%;
+        background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.75) 50%, transparent 60%);
+        transform: translate3d(-70%, 0, 0);
+        animation: splash-shine 0.9s ease-in-out 1.6s forwards;
+      }
+      .splash__outline {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        fill: none; stroke: var(--s-line); stroke-width: 5; opacity: 0;
+        animation: splash-outline 1.7s ease 0.15s forwards;
+      }
+      .splash__drop {
+        position: absolute; left: 50%; top: 50%; width: 18px; height: 24px; margin: -12px 0 0 -9px;
+        border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+        background: radial-gradient(circle at 35% 62%, #f4ffd0, #bcfa03 45%, #46d35b);
+        transform: translate3d(0, -48vh, 0) scale(0.8, 1.2); opacity: 0;
+        animation: splash-fall 0.58s cubic-bezier(.55, 0, .9, .4) forwards;
+      }
+      .splash__ring {
+        position: absolute; left: 50%; top: 62%; width: 190px; height: 46px; margin: -23px 0 0 -95px;
+        border-radius: 50%; border: 2px solid var(--s-line);
+        opacity: 0; transform: scale(0.15);
+        animation: splash-ripple 1.1s cubic-bezier(.2, .7, .3, 1) 0.55s forwards;
+      }
+      .splash__ring--2 { animation-delay: 0.72s; animation-duration: 1.3s; }
+      .splash__spray i {
+        position: absolute; left: 50%; top: 58%;
+        width: var(--z, 7px); height: var(--z, 7px); margin: calc(var(--z, 7px) / -2);
+        border-radius: 50%; background: #bcfa03; opacity: 0;
+        animation: splash-spray 0.8s cubic-bezier(.15, .7, .4, 1) 0.56s forwards;
+      }
+      .splash__word {
+        font: 700 1.35rem/1 Quicksand, Inter, system-ui, sans-serif; letter-spacing: 0.02em;
+        opacity: 0; transform: translate3d(0, 10px, 0);
+        animation: splash-word 0.7s cubic-bezier(.2, .8, .2, 1) 1.35s forwards;
+      }
+      @keyframes splash-fall {
+        0% { opacity: 1; }
+        92% { transform: translate3d(0, -4px, 0) scale(0.72, 1.35); opacity: 1; }
+        100% { transform: translate3d(0, 18px, 0) scale(1.9, 0.25); opacity: 0; }
+      }
+      @keyframes splash-ripple { 0% { opacity: 0.9; transform: scale(0.15); } 100% { opacity: 0; transform: scale(1.5); } }
+      @keyframes splash-spray {
+        0% { opacity: 1; transform: rotate(var(--a)) translate3d(0, 0, 0) scale(1); }
+        100% { opacity: 0; transform: rotate(var(--a)) translate3d(0, calc(var(--d) * -1), 0) scale(0.25); }
+      }
+      @keyframes splash-rise { to { transform: translate3d(0, -6%, 0); } }
+      @keyframes splash-slosh { to { transform: translate3d(-50%, 0, 0); } }
+      @keyframes splash-shine { to { transform: translate3d(70%, 0, 0); } }
+      @keyframes splash-outline { 0% { opacity: 0; } 25% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+      @keyframes splash-jelly {
+        0% { transform: scale(1); } 30% { transform: scale(1.07, 0.95); } 55% { transform: scale(0.97, 1.03); } 100% { transform: scale(1); }
+      }
+      @keyframes splash-word { to { opacity: 1; transform: none; } }
+      @keyframes splash-failsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+      /* leaving: the mark lifts away and the curtain slides up with its liquid edge */
+      .splash--out { animation: splash-leave 0.95s cubic-bezier(.76, 0, .24, 1) 0.12s forwards; pointer-events: none; }
+      .splash--out .splash__center { animation: splash-center-out 0.55s cubic-bezier(.5, 0, .75, 0) forwards; }
+      @keyframes splash-leave { to { transform: translate3d(0, calc(-100% - 80px), 0); } }
+      @keyframes splash-center-out { to { opacity: 0; transform: translate3d(0, -36px, 0) scale(1.08); } }
+      /* repeat visits this session: no drop, a quick fill */
+      .splash--quick .splash__drop, .splash--quick .splash__ring, .splash--quick .splash__spray { display: none; }
+      .splash--quick .splash__level { animation-delay: 0s; animation-duration: 0.7s; }
+      .splash--quick .splash__outline { animation-delay: 0s; animation-duration: 0.8s; }
+      .splash--quick .splash__word { animation-delay: 0.2s; }
+      .splash--quick .splash__mark { animation-delay: 0.55s; }
+      .splash--quick .splash__shine { animation-delay: 0.6s; }
+      @media (prefers-reduced-motion: reduce) {
+        .splash *, .splash *::before { animation: none !important; }
+        .splash__drop, .splash__ring, .splash__spray, .splash__outline, .splash__shine { display: none; }
+        .splash__level { transform: translate3d(0, -6%, 0); }
+        .splash__word { opacity: 1; transform: none; }
+        .splash--out { animation: splash-failsafe 0.4s ease forwards; }
+      }
+    </style>
     <title>Apheleia — Ideas to Impact</title>
   </head>
   <body>
+    <div id="splash" class="splash" aria-hidden="true">
+      <div class="splash__center">
+        <div class="splash__mark">
+          <span class="splash__ring"></span><span class="splash__ring splash__ring--2"></span>
+          <span class="splash__spray"><i style="--a:-78deg;--d:74px;--z:8px"></i><i style="--a:-52deg;--d:92px;--z:6px"></i><i style="--a:-28deg;--d:70px;--z:7px"></i><i style="--a:-8deg;--d:88px;--z:5px"></i><i style="--a:14deg;--d:64px;--z:6px"></i><i style="--a:36deg;--d:96px;--z:7px"></i><i style="--a:58deg;--d:72px;--z:5px"></i><i style="--a:82deg;--d:84px;--z:6px"></i><i style="--a:-100deg;--d:58px;--z:5px"></i></span>
+          <svg class="splash__outline" viewBox="500 290 535 442"><path d="M725 318 C740 292 792 292 807 318 L913 499 C875 493 790 503 731 528 C680 548 555 655 530 727 C518 724 502 708 511 688 Z"/><path d="M645 727 C663 658 758 547 921 515 L1022 682 C1034 700 1024 727 1000 727 L902 727 C890 727 882 722 876 713 L822 628 C808 611 780 612 762 626 C722 650 668 690 645 727 Z"/></svg>
+          <div class="splash__liquid">
+            <div class="splash__level"><i class="splash__wave splash__wave--back"></i><i class="splash__wave splash__wave--front"></i></div>
+            <span class="splash__shine"></span>
+          </div>
+          <span class="splash__drop"></span>
+        </div>
+        <div class="splash__word">Apheleia</div>
+      </div>
+      <div class="splash__curtain-edge"></div>
+    </div>
+    <script>
+      // intro state before first paint: lock scrolling; repeat visits this session get the quick intro
+      document.documentElement.classList.add('is-loading')
+      try { if (sessionStorage.getItem('apheleia-intro')) document.getElementById('splash').classList.add('splash--quick') } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

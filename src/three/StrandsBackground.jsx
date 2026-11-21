@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { rectOf, viewport } from '../layout.js'
+import { debugPrograms, dprFor, noteRenderer, onQuality, quality } from '../perf.js'
+import { release, splashActive } from '../splash.js'
 import { createBloom, createComposite } from './bloom.js'
 import { PALETTES } from './palette.js'
 import { createParticleUniverse } from './particles.js'
 import { createModelLayer } from './modelLayer.js'
+import { afterFrames, precompileOffscreen } from './precompile.js'
 import { STRAND_SHAPES, createStrandField, dampShape, mixShape, pointer, pointerIn, tickPointer } from './strands.js'
 import { useReducedMotion } from './utils.js'
 
@@ -15,6 +19,11 @@ import { useReducedMotion } from './utils.js'
       through the lower sections, each shape pinned to a layout anchor
     · a faint starfield (dark theme)
   Everything renders into one HDR target → bloom chain → composite.
+
+  Performance: layout comes from the layout cache (no per-frame forced layout),
+  resolution / bloom passes / particle count follow the quality manager, and
+  while the hero or the pinned story covers the screen this canvas only redraws
+  every third frame (just their faded edges show it).
 */
 
 const STRAND_ORDER = ['home', 'process', 'about', 'services', 'work', 'team', 'principles', 'contact']
@@ -37,10 +46,10 @@ const WORLD_H = 2 * CAMERA_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2))
 
 // Between which two sections is the viewport centre, and how far along?
 function straddle(els) {
-  const mid = window.innerHeight / 2
+  const mid = viewport.h / 2
   const centers = els.map((el) => {
     if (!el) return null
-    const r = el.getBoundingClientRect()
+    const r = rectOf(el)
     return r.top + r.height / 2
   })
   let a = 0
@@ -56,13 +65,19 @@ function straddle(els) {
 }
 
 function Flow({ theme, reduced }) {
-  const { gl, size } = useThree()
+  const { gl, size, setDpr } = useThree()
+  const dpr = useThree((s) => s.viewport.dpr)
   const palette = PALETTES[theme] || PALETTES.dark
   const small = size.width < 700
+  const lite = useRef(quality.features !== 'high')
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const field = useMemo(() => createStrandField({ fibres: small ? 60 : 90, sheets: small ? 10 : 14, dust: small ? 160 : 300 }), [])
+  const field = useMemo(() => {
+    const l = lite.current
+    return createStrandField({ fibres: small || l ? 60 : 90, sheets: small || l ? 10 : 14, dust: small ? 160 : l ? 200 : 300 })
+  }, [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const universe = useMemo(() => createParticleUniverse({ count: small ? 9000 : 20000, stars: small ? 400 : 900 }), [])
+  const tick = useRef(0)
   const camera = useMemo(() => {
     const c = new THREE.PerspectiveCamera(FOV, 1, 0.1, 100)
     c.position.set(0, 0, CAMERA_Z)
@@ -83,6 +98,33 @@ function Flow({ theme, reduced }) {
   const els = useRef({ strands: [], particles: [], anchors: [] })
   const morph = useRef(0)
 
+  // quality changes: resolution, particle density (bloom passes are read per frame)
+  useEffect(() => {
+    const apply = () => {
+      lite.current = quality.features !== 'high'
+      universe.setDensity(lite.current ? 0.5 : 1)
+      setDpr(dprFor('bg', size.width, size.height))
+    }
+    apply()
+    return onQuality(apply)
+  }, [universe, setDpr, size])
+
+  // compile the layers' shaders in parallel before the first draw: the glow layers render
+  // into the (linear, untonemapped) bloom target, the composite to the screen
+  const compiled = useRef(false)
+  const shown = useRef(false)
+  useEffect(() => {
+    precompileOffscreen(gl, scene, camera)
+    gl.compile(comp.scene, comp.cam)
+    afterFrames(6).then(() => (compiled.current = true))
+  }, [gl, scene, camera, comp])
+
+  // then build the 3D objects + compile their shaders in idle moments
+  useEffect(() => {
+    const id = setTimeout(() => models.prewarm(camera), 600)
+    return () => clearTimeout(id)
+  }, [models, camera])
+
   useEffect(
     () => () => {
       field.dispose()
@@ -102,7 +144,6 @@ function Flow({ theme, reduced }) {
     comp.mat.uniforms.uW.value.set(...palette.strands.bloom)
   }, [field, universe, comp, models, palette])
   useEffect(() => {
-    const dpr = gl.getPixelRatio()
     field.uniforms.uPixelRatio.value = dpr
     universe.uniforms.uPixelRatio.value = dpr
     bloom.setSize(Math.round(size.width * dpr), Math.round(size.height * dpr))
@@ -118,9 +159,20 @@ function Flow({ theme, reduced }) {
       particles: PARTICLE_SECTIONS.map((s) => document.getElementById(s.id)),
       anchors: PARTICLE_SECTIONS.map((s) => (s.anchor ? document.querySelector(s.anchor) : null)),
     }
-  }, [field, universe, bloom, camera, gl, size])
+  }, [field, universe, bloom, camera, dpr, size])
 
   useFrame((state, dt) => {
+    if (!compiled.current) return
+    // hero / pinned story are opaque canvases over this one: redraw at a third of the rate
+    const [hero, story] = els.current.strands
+    const vh = size.height
+    const hr = hero && rectOf(hero)
+    const sr = story && rectOf(story)
+    const covered = (hr && hr.top <= 1 && hr.bottom >= vh) || (sr && sr.top <= 0 && sr.bottom >= vh)
+    if (covered && tick.current++ % 3 !== 0) return
+    // hidden behind the intro: draw a few frames to warm up, then wait
+    if (splashActive() && tick.current++ > 3) return
+
     const d = Math.min(dt, 0.1)
     const t = reduced ? 3 : state.clock.elapsedTime
 
@@ -152,14 +204,14 @@ function Flow({ theme, reduced }) {
       const el = els.current.anchors[i]
       const xf = u.uXf.value[i]
       if (!el) return xf.set(0, 0, 0, 1)
-      const r = el.getBoundingClientRect()
+      const r = rectOf(el)
       const span = (sec.fit === 'w' ? r.width : r.height) * k
       xf.set((r.left + r.width / 2 - size.width / 2) * k, -(r.top + r.height * (0.5 + (sec.dy || 0)) - size.height / 2) * k, 0, (span / sec.nominal) * sec.factor)
     })
 
     models.update({ t, dt: d, k, w: size.width, h: size.height, reduced })
 
-    bloom.render(gl, scene, camera)
+    bloom.render(gl, scene, camera, lite.current ? 1 : 2)
     gl.setRenderTarget(null)
     gl.render(comp.scene, comp.cam)
     // models on top, crisp (not bloomed)
@@ -167,6 +219,8 @@ function Flow({ theme, reduced }) {
     gl.clearDepth()
     gl.render(models.scene, camera)
     gl.autoClear = true
+    if (!shown.current) release('bg') // first frame is up: the intro may go
+    shown.current = true
   }, 1)
 
   return null
@@ -174,12 +228,19 @@ function Flow({ theme, reduced }) {
 
 export default function StrandsBackground({ theme }) {
   const reduced = useReducedMotion()
+  const [initialDpr] = useState(() => dprFor('bg'))
   return (
     <div className="strands-bg" aria-hidden="true">
       <Canvas
-        dpr={[1, 1.25]}
+        dpr={initialDpr}
         gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
+          // shader error queries block the main thread until the driver finishes compiling
+          gl.debug.checkShaderErrors = import.meta.env.DEV
+          // cache this sync GPU query now — later it would wait behind queued shader compiles
+          gl.capabilities.getMaxAnisotropy()
+          noteRenderer(gl)
+          debugPrograms(gl, 'bg')
           // only the lit 3D models use tone mapping; the shader layers ignore it
           gl.toneMapping = THREE.NeutralToneMapping
         }}

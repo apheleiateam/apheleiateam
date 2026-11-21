@@ -38,6 +38,20 @@ export const Moon = (p) => (
   <svg {...stroke} {...p}><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" /></svg>
 )
 
+export const SoundOn = (p) => (
+  <svg {...stroke} {...p}>
+    <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />
+    <path className="sound-wave sound-wave--1" d="M15.5 9.2a4 4 0 0 1 0 5.6" />
+    <path className="sound-wave sound-wave--2" d="M18 6.8a7.5 7.5 0 0 1 0 10.4" />
+  </svg>
+)
+export const SoundOff = (p) => (
+  <svg {...stroke} {...p}>
+    <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />
+    <path d="M16 9.5l5 5M21 9.5l-5 5" />
+  </svg>
+)
+
 /* service + process icons (gradient stroke) */
 export const IconDesign = (p) => (
   <svg {...grad} {...p}>

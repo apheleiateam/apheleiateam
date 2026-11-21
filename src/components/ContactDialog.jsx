@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { play } from '../sound.js'
 import { EMAIL, INTERESTS } from '../content.js'
 import { ArrowRight, Close } from './Icons.jsx'
 import './ContactDialog.css'
@@ -15,9 +16,13 @@ export default function ContactDialog({ open, topic, email, onClose }) {
     if (open) {
       setInterest(topic || '')
       setSent(false)
-      if (!d.open) d.showModal()
+      if (!d.open) {
+        d.showModal()
+        play('open') // a splash as the dialog appears
+      }
     } else if (d.open) {
       d.close()
+      play('close')
     }
   }, [open, topic])
 
@@ -39,7 +44,7 @@ export default function ContactDialog({ open, topic, email, onClose }) {
       onClick={(e) => e.target === ref.current && onClose()}
     >
       <form className="dialog__panel" onSubmit={submit}>
-        <button type="button" className="round-btn dialog__close" aria-label="Close" onClick={onClose}>
+        <button type="button" data-sound="none" className="round-btn dialog__close" aria-label="Close" onClick={onClose}>
           <Close />
         </button>
 
@@ -75,7 +80,7 @@ export default function ContactDialog({ open, topic, email, onClose }) {
           <textarea name="details" required placeholder="What are you building? Goals, timelines, anything helpful." />
         </label>
 
-        <button type="submit" className="btn btn--primary dialog__submit">
+        <button type="submit" data-sound="open" className="btn btn--primary dialog__submit">
           Send message <ArrowRight />
         </button>
         {sent && (

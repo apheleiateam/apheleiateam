@@ -13,7 +13,8 @@ const canvas2d = (w, h) => {
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
-  return [c, c.getContext('2d')]
+  // CPU-backed: drawing these never syncs with a GPU that is busy compiling shaders
+  return [c, c.getContext('2d', { willReadFrequently: true })]
 }
 const rr = (g, x, y, w, h, r) => {
   g.beginPath()

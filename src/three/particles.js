@@ -29,7 +29,7 @@ function sampleLogo(n, rnd) {
   const c = document.createElement('canvas')
   c.width = W
   c.height = H
-  const g = c.getContext('2d')
+  const g = c.getContext('2d', { willReadFrequently: true })
   g.scale(W / vw, H / vh)
   g.translate(-vx, -vy)
   g.fillStyle = '#fff'
@@ -362,5 +362,8 @@ export function createParticleUniverse({ count = 20000, stars = 900, seed = 5 } 
     starMat.dispose()
   }
 
-  return { group, uniforms, setPalette, dispose }
+  // draw only a share of the points (each shape is sampled randomly, so any prefix is uniform)
+  const setDensity = (f) => geom.setDrawRange(0, Math.max(1, Math.floor(count * f)))
+
+  return { group, uniforms, setPalette, setDensity, dispose }
 }

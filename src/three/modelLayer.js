@@ -1,8 +1,10 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { rectOf } from '../layout.js'
 import { buildBrandMark } from './brandMark.js'
-import { COLUMN_TOP, buildColumn } from './column.js'
+import { COLUMN_TOP, MARBLE_URL, buildColumn } from './column.js'
 import { brandAtlas, createFlame, loadModel, normalize } from './models.js'
+import { whenIdle } from './utils.js'
 
 /*
   3D objects that live in the page background, each pinned to a section anchor
@@ -15,6 +17,10 @@ import { brandAtlas, createFlame, loadModel, normalize } from './models.js'
 
   Solid objects render in their own crisp pass; the flame and embers render in
   the bloom pass so they glow.
+
+  Nothing is built on demand mid-scroll: prewarm() builds every object and
+  compiles its shaders (in parallel, off the main thread where supported) during
+  idle time right after the page loads. ensure() remains as a fallback.
 */
 
 const smooth01 = (x) => {
@@ -88,12 +94,17 @@ export function createModelLayer(gl, bloomScene) {
   embers.mat.uniforms.uPixelRatio.value = gl.getPixelRatio()
   bloomScene.add(flame.mesh, embers.points)
 
-  const slots = {
-    column: { anchor: '.principles__stage', obj: null },
-    ringed: { anchor: '.cta', url: '/models/planet-ringed.glb', obj: null, loading: false },
-    lava: { anchor: '.cta', url: '/models/planet-lava.glb', obj: null, loading: false },
-    mark: { anchor: '.team__stage', obj: null },
-  }
+  const loadMarble = () =>
+    new THREE.TextureLoader()
+      .loadAsync(MARBLE_URL)
+      .then((t) => {
+        t.colorSpace = THREE.SRGBColorSpace
+        t.wrapS = t.wrapT = THREE.RepeatWrapping
+        t.anisotropy = 4
+        gl.initTexture(t) // upload now, not on first draw
+        return t
+      })
+      .catch(() => null)
 
   const prepare = {
     ringed(gltf) {
@@ -114,25 +125,42 @@ export function createModelLayer(gl, bloomScene) {
     },
   }
 
-  // procedural objects are built on first approach; models load on first approach
+  const slots = {
+    column: { anchor: '.principles__stage', make: async () => buildColumn(await loadMarble()) },
+    ringed: { anchor: '.cta', make: async () => prepare.ringed(await loadModel('/models/planet-ringed.glb')) },
+    lava: { anchor: '.cta', make: async () => prepare.lava(await loadModel('/models/planet-lava.glb')) },
+    mark: { anchor: '.team__stage', make: async () => buildBrandMark() },
+  }
+  for (const s of Object.values(slots)) Object.assign(s, { obj: null, ready: null })
+
+  // build (or load) one object; resolves when it is in the scene
   const ensure = (name) => {
     const slot = slots[name]
-    if (slot.obj || slot.loading) return
-    if (name === 'column') slot.obj = buildColumn()
-    else if (name === 'mark') slot.obj = buildBrandMark()
-    if (slot.obj) {
-      slot.obj.visible = false
-      scene.add(slot.obj)
-      return
-    }
-    slot.loading = true
-    loadModel(slot.url)
-      .then((gltf) => {
-        slot.obj = prepare[name](gltf, slot)
-        slot.obj.visible = false
-        scene.add(slot.obj)
+    slot.ready ??= slot
+      .make()
+      .then((obj) => {
+        obj.visible = false
+        slot.obj = obj
+        scene.add(obj)
       })
       .catch(() => {}) // a missing model just means no model
+    return slot.ready
+  }
+
+  // Build everything in idle time, one object per idle slot, then compile all
+  // shaders together — so scrolling to a section never waits on setup work.
+  let disposed = false
+  const prewarm = async (camera, { fast = false } = {}) => {
+    const wait = () => whenIdle(fast ? 100 : 1500)
+    for (const name of ['mark', 'column', 'ringed', 'lava']) {
+      await wait()
+      if (disposed) return
+      await ensure(name)
+    }
+    await wait()
+    if (disposed) return
+    // queue the shaders now (non-blocking); they are ready long before the visitor scrolls there
+    gl.compile(scene, camera)
   }
 
   // How present is an anchor on screen (1 = centred, 0 = well off-screen)?
@@ -152,7 +180,7 @@ export function createModelLayer(gl, bloomScene) {
   /* per frame: ctx = { t, dt, k (world units per px), w, h, reduced } */
   const update = ({ t, k, w, h, reduced }) => {
     const toWorld = (x, y) => [(x - w / 2) * k, -(y - h / 2) * k]
-    if (Object.values(anchors).some((el) => !el?.isConnected)) refreshAnchors()
+    if (!anchors.column?.isConnected || !anchors.ringed?.isConnected || !anchors.mark?.isConnected) refreshAnchors()
 
     /* column + flame + embers */
     {
@@ -160,7 +188,7 @@ export function createModelLayer(gl, bloomScene) {
       const slot = slots.column
       let p = 0
       if (el) {
-        const r = el.getBoundingClientRect()
+        const r = rectOf(el)
         if (near(r, h)) ensure('column')
         p = presence(r, h)
         const height = r.height * 0.74 * k // world height of the column up to the bowl rim
@@ -192,7 +220,7 @@ export function createModelLayer(gl, bloomScene) {
     {
       const el = anchors.ringed
       if (el) {
-        const r = el.getBoundingClientRect()
+        const r = rectOf(el)
         if (near(r, h)) {
           ensure('ringed')
           ensure('lava')
@@ -222,7 +250,7 @@ export function createModelLayer(gl, bloomScene) {
       const el = anchors.mark
       const slot = slots.mark
       if (el) {
-        const r = el.getBoundingClientRect()
+        const r = rectOf(el)
         if (near(r, h, 1.6)) ensure('mark')
         const p = presence(r, h)
         if (slot.obj) {
@@ -250,6 +278,7 @@ export function createModelLayer(gl, bloomScene) {
   }
 
   const dispose = () => {
+    disposed = true
     scene.environment?.dispose()
     pmrem.dispose()
     bloomScene.remove(flame.mesh, embers.points)
@@ -259,5 +288,5 @@ export function createModelLayer(gl, bloomScene) {
     for (const s of Object.values(slots)) s.obj?.userData.dispose?.()
   }
 
-  return { scene, update, setTheme, dispose }
+  return { scene, update, setTheme, prewarm, dispose }
 }

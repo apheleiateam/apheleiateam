@@ -462,6 +462,13 @@ img, svg { display: block; max-width: 100%; }
   from { clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 0px)); }
   to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0px)); }
 }
+/* lighter devices: the circular clip is re-rasterised every frame; a short crossfade
+   runs entirely on the compositor */
+html[data-perf='low']::view-transition-new(root),
+html[data-perf='static']::view-transition-new(root) {
+  animation: theme-fade 0.32s ease both;
+}
+@keyframes theme-fade { from { opacity: 0; } }
 
 /* ---------- Motion ---------- */
 .reveal { opacity: 0; }
@@ -486,3 +493,39 @@ img, svg { display: block; max-width: 100%; }
   .reveal, .reveal.is-visible, .reveal .w, .reveal.is-visible .w { opacity: 1; animation: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Lighter rendering on low-end devices (src/perf.js sets html[data-perf]) ----------
+   Backdrop blur over a live WebGL canvas is re-computed every frame — the single most
+   expensive CSS effect here. On 'low' / 'static' the glass becomes a denser frosted fill
+   instead, so text keeps its contrast with no blur at all. */
+html[data-perf='low'] *,
+html[data-perf='low'] *::before,
+html[data-perf='low'] *::after,
+html[data-perf='static'] *,
+html[data-perf='static'] *::before,
+html[data-perf='static'] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-perf='low'][data-theme],
+html[data-perf='static'][data-theme] {
+  --glass-tint: 0.74;
+}
+html[data-perf='low'] .reveal.is-visible .w,
+html[data-perf='static'] .reveal.is-visible .w {
+  animation-name: word-in-lite;
+}
+@keyframes word-in-lite {
+  from { opacity: 0; translate: 0 0.45em; }
+  to { opacity: 1; translate: 0 0; }
+}
+html[data-perf='low'] .story__light,
+html[data-perf='static'] .story__light {
+  filter: none;
+  mix-blend-mode: normal;
+  opacity: calc(var(--gobo, 0) * 0.45);
+}
+
+/* the background canvas eases in once its first frame is ready */
+.strands-bg { animation: bg-in 0.9s ease both; }
+@keyframes bg-in { from { opacity: 0; } }

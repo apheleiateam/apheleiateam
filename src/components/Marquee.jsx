@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { viewport } from '../layout.js'
 import { Sparkle } from './Icons.jsx'
 import './Marquee.css'
 
@@ -31,9 +32,15 @@ export default function Marquee() {
     let raf = 0
     let visible = false
     let last = performance.now()
-    let lastY = window.scrollY
+    let lastY = viewport.y
     let vel = 0
     const x = [0, -200]
+    // reading offsetWidth inside the loop forced a full layout every frame
+    const widths = [0, 0]
+    const measure = () => rows.current.forEach((row, i) => row && (widths[i] = row.firstChild.offsetWidth))
+    measure()
+    const ro = new ResizeObserver(measure)
+    rows.current.forEach((row) => row && ro.observe(row.firstChild))
 
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting
@@ -47,13 +54,14 @@ export default function Marquee() {
     function loop(now) {
       const dt = Math.min(0.05, (now - last) / 1000) || 0.016
       last = now
-      const y = window.scrollY
+      const y = viewport.y
       vel += ((y - lastY) / dt - vel) * 0.12
       lastY = y
       const boost = Math.min(1400, Math.abs(vel)) * 0.45
       rows.current.forEach((row, i) => {
         if (!row) return
-        const w = row.firstChild.offsetWidth
+        const w = widths[i]
+        if (!w) return
         const dir = i === 0 ? -1 : 1
         x[i] += dir * (55 + boost) * dt
         if (x[i] <= -w) x[i] += w
@@ -66,6 +74,7 @@ export default function Marquee() {
 
     return () => {
       io.disconnect()
+      ro.disconnect()
       cancelAnimationFrame(raf)
     }
   }, [])

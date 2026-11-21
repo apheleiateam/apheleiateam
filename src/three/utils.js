@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { webglApi } from '../perf.js'
 
 export const clamp01 = (v) => Math.min(1, Math.max(0, v))
 export const range = (p, a, b) => clamp01((p - a) / (b - a))
@@ -22,18 +23,8 @@ export const seeded = (seed) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-let webgl
-export const hasWebGL = () => {
-  if (webgl === undefined) {
-    try {
-      const c = document.createElement('canvas')
-      webgl = !!(c.getContext('webgl2') || c.getContext('webgl'))
-    } catch {
-      webgl = false
-    }
-  }
-  return webgl
-}
+// WebGL API present (an actual context failing is caught by the canvas error boundary)
+export const hasWebGL = webglApi
 
 export function useInView(ref, rootMargin = '150px') {
   const [inView, setInView] = useState(false)
@@ -58,3 +49,10 @@ export function useReducedMotion() {
   }, [])
   return reduced
 }
+
+// Resolves when the browser is idle (or after `timeout` ms at the latest).
+export const whenIdle = (timeout = 1500) =>
+  new Promise((resolve) => {
+    if ('requestIdleCallback' in window) requestIdleCallback(() => resolve(), { timeout })
+    else setTimeout(resolve, 60)
+  })

@@ -1,6 +1,10 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from '../theme.jsx'
-import { hasWebGL } from '../three/utils.js'
+import { rectOf, viewport } from '../layout.js'
+import { useQuality } from '../perf.js'
+import { afterIntroBeat, hold, release, splashActive } from '../splash.js'
+import CanvasBoundary from './CanvasBoundary.jsx'
+import { hasWebGL, whenIdle } from '../three/utils.js'
 import { ArrowDown } from './Icons.jsx'
 import './Story.css'
 
@@ -31,13 +35,26 @@ const STAGES = [
 const DIM_LABELS = 6
 
 // Pinned section: scroll position drives the 3D scene from idea → product.
+const storyReady = () => release('story')
+
 export default function Story() {
   const { theme } = useTheme()
   const section = useRef(null)
   const progress = useRef(0)
   const labels = useRef([])
   const [stage, setStage] = useState(0)
-  const webgl = useMemo(hasWebGL, [])
+  const { features } = useQuality()
+  const webgl = useMemo(hasWebGL, []) && features !== 'static'
+  // build the story scene behind the intro (or at the first idle moment), never when it scrolls in
+  if (webgl) hold('story')
+  const [mount, setMount] = useState(false)
+  useEffect(() => {
+    let on = true
+    if (webgl) (splashActive() ? afterIntroBeat() : whenIdle(1500)).then(() => on && setMount(true))
+    return () => {
+      on = false
+    }
+  }, [webgl])
 
   useEffect(() => {
     let frame = 0
@@ -45,9 +62,11 @@ export default function Story() {
       frame = 0
       const el = section.current
       if (!el) return
-      const r = el.getBoundingClientRect()
-      const total = r.height - window.innerHeight
+      const r = rectOf(el)
+      const total = r.height - viewport.h
       const p = Math.min(1, Math.max(0, -r.top / total))
+      // outside the pinned range p is clamped: skip the style writes entirely
+      if (p === progress.current && el.style.getPropertyValue('--sp')) return
       progress.current = p
       el.style.setProperty('--sp', p.toFixed(4))
       el.style.setProperty('--gobo', Math.min(1, Math.max(0, (p - 0.3) / 0.2)).toFixed(3))
@@ -71,10 +90,12 @@ export default function Story() {
   return (
     <section className="story" id="process" ref={section} aria-label="Our process">
       <div className="story__sticky">
-        {webgl && (
+        {webgl && mount && (
+          <CanvasBoundary>
           <Suspense fallback={null}>
-            <StoryCanvas theme={theme} progress={progress} labels={labels} />
+            <StoryCanvas theme={theme} progress={progress} labels={labels} onReady={storyReady} />
           </Suspense>
+          </CanvasBoundary>
         )}
         <div className="story__light" aria-hidden="true" />
         <div className="story__labels" aria-hidden="true">

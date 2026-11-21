@@ -34,6 +34,7 @@
   mix-blend-mode: var(--gobo-blend);
 }
 
+.story__labels { contain: layout style; }
 .story__labels span {
   position: absolute;
   left: 0;
@@ -139,4 +140,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .story__word, .story__body { animation: none; }
+}
+
+html[data-perf='low'] .story__word,
+html[data-perf='low'] .story__body,
+html[data-perf='static'] .story__word,
+html[data-perf='static'] .story__body {
+  animation-name: word-in-lite;
 }

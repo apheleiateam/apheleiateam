@@ -1,11 +1,16 @@
-import { Suspense, lazy, useMemo, useRef } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from '../theme.jsx'
+import { useQuality } from '../perf.js'
+import { afterIntroBeat, hold, release } from '../splash.js'
+import CanvasBoundary from './CanvasBoundary.jsx'
 import { hasWebGL, seeded } from '../three/utils.js'
 import { ArrowDown, ArrowRight } from './Icons.jsx'
 import './Hero.css'
 
 const RibbonCanvas = lazy(() => import('../three/RibbonCanvas.jsx'))
 const LABELS = 22
+
+const heroReady = () => release('hero')
 
 export default function Hero({ onContact }) {
   const { theme } = useTheme()
@@ -14,15 +19,27 @@ export default function Hero({ onContact }) {
     const rnd = seeded(2026)
     return Array.from({ length: LABELS }, () => String(Math.floor(100 + rnd() * 900)))
   }, [])
-  const webgl = useMemo(hasWebGL, [])
+  const { features } = useQuality()
+  const webgl = useMemo(hasWebGL, []) && features !== 'static'
+  if (webgl) hold('hero')
+  const [mount, setMount] = useState(false)
+  useEffect(() => {
+    let on = true
+    if (webgl) afterIntroBeat().then(() => on && setMount(true))
+    return () => {
+      on = false
+    }
+  }, [webgl])
 
   return (
     <section className="hero" id="home">
       <div className="hero__stage" aria-hidden="true">
-        {webgl && (
-          <Suspense fallback={null}>
-            <RibbonCanvas theme={theme} labels={labels} labelCount={LABELS} />
-          </Suspense>
+        {webgl && mount && (
+          <CanvasBoundary>
+            <Suspense fallback={null}>
+              <RibbonCanvas theme={theme} labels={labels} labelCount={LABELS} onReady={heroReady} />
+            </Suspense>
+          </CanvasBoundary>
         )}
         <div className="hero__labels">
           {numbers.map((n, i) => (

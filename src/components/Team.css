@@ -118,3 +118,6 @@
 @media (prefers-reduced-motion: reduce) {
   .team__who { animation: none; }
 }
+
+/* the ring's side cards may swing past the screen edge: clip sideways only, never vertically */
+.team { overflow-x: clip; }

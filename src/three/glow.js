@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { onQuality, quality } from '../perf.js'
 
 /*
   "Flame field": an opaque backdrop shader — page background colour with a
@@ -101,17 +102,44 @@ export function applyFlamePalette(mat, palette, intensity = palette.flame.intens
 }
 
 // Glass for cards, board and cubes. Tint comes from material/instance colour.
+/*
+  Glass with two quality modes. Full: real refraction (transmission) — three.js
+  renders the whole opaque scene into an extra texture every frame for it.
+  Lite (low-end devices, see src/perf.js): translucent tinted glass with the same
+  gloss but no refraction pass — several times cheaper.
+*/
+const glassMats = new Set()
+let glassLite = quality.features !== 'high'
+
+function applyGlassMode(m) {
+  const full = m.userData.full
+  m.transmission = glassLite ? 0 : full.transmission
+  m.iridescence = glassLite ? 0 : full.iridescence
+  m.transparent = glassLite
+  m.opacity = glassLite ? 0.6 : 1
+  m.needsUpdate = true
+}
+
+onQuality((q) => {
+  const lite = q.features !== 'high'
+  if (lite === glassLite) return
+  glassLite = lite
+  glassMats.forEach(applyGlassMode)
+})
+
 export function makeGlass(opts = {}) {
-  return new THREE.MeshPhysicalMaterial({
+  const m = new THREE.MeshPhysicalMaterial({
     transmission: 1,
     thickness: 0.35,
     roughness: 0.14,
     ior: 1.42,
     clearcoat: 1,
     clearcoatRoughness: 0.08,
-    iridescence: 0.45,
-    iridescenceIOR: 1.3,
-    iridescenceThicknessRange: [120, 420],
     ...opts,
   })
+  m.userData.full = { transmission: m.transmission, iridescence: m.iridescence }
+  if (glassLite) applyGlassMode(m)
+  glassMats.add(m)
+  m.addEventListener('dispose', () => glassMats.delete(m))
+  return m
 }

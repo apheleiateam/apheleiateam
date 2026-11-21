@@ -41,16 +41,10 @@ export function buildBrandMark() {
   geom.scale(1 / size.y, 1 / size.y, 1 / size.y)
   geom.computeVertexNormals()
 
-  const mat = new THREE.MeshPhysicalMaterial({
+  const mat = new THREE.MeshStandardMaterial({
     color: '#bcfa03',
-    roughness: 0.16,
+    roughness: 0.14,
     metalness: 0.05,
-    clearcoat: 1,
-    clearcoatRoughness: 0.05,
-    iridescence: 0.3,
-    iridescenceIOR: 1.3,
-    sheen: 0.6,
-    sheenColor: '#f4ffd6',
     emissive: '#4f7a00',
     emissiveIntensity: 0.35,
   })
