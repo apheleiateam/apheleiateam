@@ -4,7 +4,7 @@ import Hero from './components/Hero.jsx'
 import About from './components/About.jsx'
 import Services from './components/Services.jsx'
 import Work from './components/Work.jsx'
-import Process from './components/Process.jsx'
+import Story from './components/Story.jsx'
 import Principles from './components/Principles.jsx'
 import CTA from './components/CTA.jsx'
 import Footer from './components/Footer.jsx'
@@ -44,10 +44,10 @@ export default function App() {
       <Nav onContact={openContact} />
       <main>
         <Hero onContact={openContact} />
+        <Story />
         <About />
         <Services onContact={openContact} />
         <Work onContact={openContact} />
-        <Process onContact={openContact} />
         <Principles onContact={openContact} />
         <CTA onContact={openContact} />
       </main>

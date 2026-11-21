@@ -4,10 +4,10 @@ export const EMAIL = 'hello@apheleia.com'
 
 export const NAV_LINKS = [
   { id: 'home', label: 'Home' },
+  { id: 'process', label: 'Process' },
   { id: 'about', label: 'About' },
   { id: 'services', label: 'Services' },
   { id: 'work', label: 'Work' },
-  { id: 'process', label: 'Process' },
   { id: 'principles', label: 'Principles' },
 ]
 

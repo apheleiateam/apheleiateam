@@ -1,15 +1,41 @@
 import { useEffect, useState } from 'react'
 import { NAV_LINKS } from '../content.js'
 import useScrollSpy from '../hooks/useScrollSpy.js'
-import { ArrowRight, Close, Menu, Sparkle } from './Icons.jsx'
+import { useTheme } from '../theme.jsx'
+import { ArrowRight, Close, Menu, Moon, Sparkle, Sun } from './Icons.jsx'
 import './Nav.css'
 
 const IDS = NAV_LINKS.map((l) => l.id)
+
+function Links({ active, onNavigate }) {
+  return (
+    <ul className="nav__links">
+      {NAV_LINKS.map((l) => (
+        <li key={l.id}>
+          <a href={`#${l.id}`} aria-current={active === l.id ? 'true' : undefined} onClick={onNavigate}>
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function ThemeToggle() {
+  const { theme, toggle } = useTheme()
+  const next = theme === 'dark' ? 'light' : 'dark'
+  return (
+    <button type="button" className="round-btn theme-toggle" onClick={toggle} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`}>
+      {theme === 'dark' ? <Sun /> : <Moon />}
+    </button>
+  )
+}
 
 export default function Nav({ onContact }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const active = useScrollSpy(IDS)
+  const close = () => setOpen(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -25,50 +51,50 @@ export default function Nav({ onContact }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  const close = () => setOpen(false)
+  const talk = () => {
+    close()
+    onContact()
+  }
 
   return (
     <header className={`nav${scrolled ? ' nav--scrolled' : ''}${open ? ' nav--open' : ''}`}>
       <div className="container nav__inner">
-        <a href="#home" className="brand" onClick={close}>
+        <a href="#home" className="brand nav__side" onClick={close}>
           <Sparkle />
           <span>Apheleia</span>
         </a>
 
-        <div className="nav__menu" id="nav-menu">
-          <nav aria-label="Primary">
-            <ul className="nav__links">
-              {NAV_LINKS.map((l) => (
-                <li key={l.id}>
-                  <a href={`#${l.id}`} aria-current={active === l.id ? 'true' : undefined} onClick={close}>
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        <nav className="nav__center" aria-label="Primary">
+          <Links active={active} />
+        </nav>
+
+        <div className="nav__side nav__actions">
+          <ThemeToggle />
+          <button type="button" className="btn btn--outline btn--sm nav__cta" onClick={talk}>
+            [ Let’s Talk ]
+          </button>
           <button
             type="button"
-            className="btn btn--outline btn--sm nav__cta"
-            onClick={() => {
-              close()
-              onContact()
-            }}
+            className="nav__toggle"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            aria-controls="nav-panel"
+            onClick={() => setOpen((o) => !o)}
           >
+            {open ? <Close /> : <Menu />}
+          </button>
+        </div>
+      </div>
+
+      <div className="nav__panel" id="nav-panel" hidden={!open}>
+        <div className="container">
+          <nav aria-label="Mobile">
+            <Links active={active} onNavigate={close} />
+          </nav>
+          <button type="button" className="btn btn--outline btn--sm" onClick={talk}>
             Let’s Talk <ArrowRight />
           </button>
         </div>
-
-        <button
-          type="button"
-          className="nav__toggle"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-          aria-controls="nav-menu"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? <Close /> : <Menu />}
-        </button>
       </div>
     </header>
   )

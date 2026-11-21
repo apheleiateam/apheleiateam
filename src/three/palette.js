@@ -1,0 +1,53 @@
+// Colours for the WebGL scenes, per theme. Built from the brand palette
+// (Deep Navy #142D3A, Teal #20A69A, Soft Ivory #F5F7F4, Pale Sage #DCEBE7, Slate #263746).
+
+export const PALETTES = {
+  dark: {
+    ribbon: ['#20a69a', '#4fe0cf', '#2f6c74', '#9fd9d1', '#17424d', '#dcebe7', '#0f7f75'],
+    env: 0.6,
+    ambient: 0.25,
+    key: 1.8,
+    rim: 2.4,
+    rimColor: '#4fe0cf',
+    line: '#5d8a84',
+    board: '#13252d',
+    keyCube: '#1d3a45',
+    panel: '#0d1a20',
+    panelLine: 'rgba(220,235,231,0.10)',
+    panelText: '#dcebe7',
+    panelMuted: 'rgba(220,235,231,0.45)',
+    chrome: '#d6efe9',
+    shadow: 'rgba(0,0,0,0.7)',
+    glow: '#4fe0cf',
+    cards: [
+      { bg: '#20a69a', ink: '#04211e' },
+      { bg: '#2f6c74', ink: '#eaf6f3' },
+      { bg: '#9fd9d1', ink: '#0b2a2f' },
+      { bg: '#1b4552', ink: '#e3f2ee' },
+    ],
+  },
+  light: {
+    ribbon: ['#20a69a', '#142d3a', '#5cc9bd', '#9fd9d1', '#2f6c74', '#dcebe7', '#263746'],
+    env: 1.0,
+    ambient: 0.45,
+    key: 2.2,
+    rim: 1.2,
+    rimColor: '#9fe3da',
+    line: '#8a9ea0',
+    board: '#fbfcfb',
+    keyCube: '#ffffff',
+    panel: '#ffffff',
+    panelLine: 'rgba(20,45,58,0.08)',
+    panelText: '#142d3a',
+    panelMuted: 'rgba(38,55,70,0.5)',
+    chrome: '#ffffff',
+    shadow: 'rgba(20,45,58,0.3)',
+    glow: '#20a69a',
+    cards: [
+      { bg: '#20a69a', ink: '#ffffff' },
+      { bg: '#142d3a', ink: '#e9f4f1' },
+      { bg: '#9fd9d1', ink: '#0f2b33' },
+      { bg: '#2f6c74', ink: '#f0faf8' },
+    ],
+  },
+}

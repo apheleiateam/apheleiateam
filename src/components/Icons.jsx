@@ -28,6 +28,15 @@ export const ArrowUpRight = (p) => <svg {...stroke} {...p}><path d="M7 17 17 7M8
 export const ArrowDown = (p) => <svg {...stroke} {...p}><path d="M12 5v14M6 13l6 6 6-6" /></svg>
 export const Close = (p) => <svg {...stroke} {...p}><path d="M6 6l12 12M18 6 6 18" /></svg>
 export const Menu = (p) => <svg {...stroke} {...p}><path d="M4 8h16M4 16h16" /></svg>
+export const Sun = (p) => (
+  <svg {...stroke} {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+  </svg>
+)
+export const Moon = (p) => (
+  <svg {...stroke} {...p}><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z" /></svg>
+)
 
 /* service + process icons (gradient stroke) */
 export const IconDesign = (p) => (
