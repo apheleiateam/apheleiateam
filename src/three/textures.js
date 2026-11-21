@@ -75,7 +75,7 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
   g.fillText('Your team', 88, BH - 66)
   g.fillStyle = pal.panelMuted
   g.font = '400 15px Inter, system-ui, sans-serif'
-  g.fillText('6 co-founders', 88, BH - 45)
+  g.fillText('7 co-founders', 88, BH - 45)
 
   // header
   const mx = sx + 34

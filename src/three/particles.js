@@ -3,7 +3,7 @@ import { LOGO_PATHS, LOGO_VIEWBOX } from '../brand/logo.js'
 import { seeded } from './utils.js'
 
 /*
-  Particle universe — one cloud of points that morphs between six shapes as the
+  Particle universe — one cloud of points that morphs between seven shapes as the
   page scrolls (all transitions happen on the GPU):
 
     0 cloud   (scattered, invisible before About)

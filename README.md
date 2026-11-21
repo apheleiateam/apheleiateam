@@ -34,11 +34,11 @@
 
 **Apheleia** — *ἀφέλεια* — is the Greek spirit of simplicity.
 
-We're a creative studio for what's next: six friends from Tamil Nadu, India — designers, engineers and strategists — building digital products that feel effortless, and the systems that keep them that way at scale.
+We're a creative studio for what's next: seven friends from Tamil Nadu, India — designers, engineers and strategists — building digital products that feel effortless, and the systems that keep them that way at scale.
 
 <table>
   <tr>
-    <td align="center" width="33%"><h1>06</h1>Co-founders, one mission</td>
+    <td align="center" width="33%"><h1>07</h1>Co-founders, one mission</td>
     <td align="center" width="33%"><h1>04</h1>Core disciplines</td>
     <td align="center" width="33%"><h1>2026</h1>Founded in Tamil Nadu</td>
   </tr>
