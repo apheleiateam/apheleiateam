@@ -24,7 +24,11 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uA;
   uniform vec3 uB;
   uniform vec3 uC;
-  uniform sampler2D uStrands;   // optional light-strand layer, rendered in screen space
+  uniform sampler2D uSharp;     // optional energy-flow layers (bloom.js), screen space
+  uniform sampler2D uB1;
+  uniform sampler2D uB2;
+  uniform sampler2D uB3;
+  uniform vec4 uW;
   uniform vec2 uRes;
   uniform float uStrandMix;
   uniform float uAdditive;
@@ -53,9 +57,10 @@ const fragmentShader = /* glsl */ `
     flame = mix(flame, uC, smoothstep(0.62, 1.0, g) * 0.8);
     vec3 col = mix(uBg, flame, clamp(g * 1.15, 0.0, 1.0));
     if (uStrandMix > 0.0) {
-      vec4 st = texture2D(uStrands, gl_FragCoord.xy / uRes);
-      vec3 s = st.rgb / (1.0 + max(max(st.r, st.g), st.b) * 0.35);
-      col = uAdditive > 0.5 ? col + s * uStrandMix : col * (1.0 - clamp(st.a, 0.0, 1.0) * uStrandMix) + st.rgb * uStrandMix;
+      vec2 suv = gl_FragCoord.xy / uRes;
+      vec4 st = (texture2D(uSharp, suv) * uW.x + texture2D(uB1, suv) * uW.y + texture2D(uB2, suv) * uW.z + texture2D(uB3, suv) * uW.w) * uStrandMix;
+      if (uAdditive > 0.5) col += st.rgb / (1.0 + st.rgb * 0.3);
+      else col = col * (1.0 - clamp(st.a, 0.0, 1.0)) + min(st.rgb, vec3(1.0));
     }
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
@@ -75,7 +80,11 @@ export function makeFlameMaterial() {
       uA: { value: new THREE.Color() },
       uB: { value: new THREE.Color() },
       uC: { value: new THREE.Color() },
-      uStrands: { value: null },
+      uSharp: { value: null },
+      uB1: { value: null },
+      uB2: { value: null },
+      uB3: { value: null },
+      uW: { value: new THREE.Vector4(0.45, 0.7, 0.6, 0.45) },
       uRes: { value: new THREE.Vector2(1, 1) },
       uStrandMix: { value: 0 },
       uAdditive: { value: 1 },

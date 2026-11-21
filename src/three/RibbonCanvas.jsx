@@ -6,6 +6,7 @@ import Env from './Env.jsx'
 import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
 import { PALETTES } from './palette.js'
 import { STRAND_SHAPES, createStrandField, pointer, pointerIn, tickPointer } from './strands.js'
+import { createBloom } from './bloom.js'
 import { seeded, useInView, useReducedMotion } from './utils.js'
 
 /*
@@ -125,7 +126,7 @@ function Ribbon({ palette, labels, labelCount, reduced, kinkRef }) {
 function Backdrop({ palette, reduced, kinkRef }) {
   const { gl, size } = useThree()
   const mat = useMemo(makeFlameMaterial, [])
-  const field = useMemo(() => createStrandField({ strands: size.width < 700 ? 100 : 160, particles: 260, seed: 11 }), [])
+  const field = useMemo(() => createStrandField({ fibres: size.width < 700 ? 60 : 90, sheets: 14, dust: 220, seed: 11 }), [])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const strandScene = useMemo(() => {
     const scene = new THREE.Scene()
@@ -133,29 +134,34 @@ function Backdrop({ palette, reduced, kinkRef }) {
     return scene
   }, [field])
   const cam = useMemo(() => new THREE.Camera(), [])
-  const rt = useMemo(() => new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: false }), [])
+  const bloom = useMemo(() => createBloom(), [])
   const pv = useMemo(() => new THREE.Vector2(), [])
 
   useEffect(() => () => {
-    rt.dispose()
+    bloom.dispose()
     field.dispose()
-  }, [rt, field])
+  }, [bloom, field])
 
   useEffect(() => {
-    applyFlamePalette(mat, palette, palette.flame.intensity * 0.75)
+    // a faint ember behind the ribbon — the energy flow carries the light now
+    applyFlamePalette(mat, palette, palette.flame.intensity * 0.28)
     mat.uniforms.uScale.value.set(6.2, 5.6)
-    mat.uniforms.uStrands.value = rt.texture
-    mat.uniforms.uStrandMix.value = 1
+    mat.uniforms.uSharp.value = bloom.textures.sharp
+    mat.uniforms.uB1.value = bloom.textures.b1
+    mat.uniforms.uB2.value = bloom.textures.b2
+    mat.uniforms.uB3.value = bloom.textures.b3
+    mat.uniforms.uW.value.set(...palette.strands.bloom)
+    mat.uniforms.uStrandMix.value = 0.9
     mat.uniforms.uAdditive.value = palette.strands.additive ? 1 : 0
     field.setPalette(palette.strands)
-  }, [mat, palette, rt, field])
+  }, [mat, palette, bloom, field])
 
   useEffect(() => {
     const dpr = gl.getPixelRatio()
-    rt.setSize(Math.round(size.width * dpr), Math.round(size.height * dpr))
+    bloom.setSize(Math.round(size.width * dpr), Math.round(size.height * dpr))
     mat.uniforms.uRes.value.set(Math.round(size.width * dpr), Math.round(size.height * dpr))
     field.uniforms.uPixelRatio.value = dpr
-  }, [gl, size, rt, mat, field])
+  }, [gl, size, bloom, mat, field])
 
   useFrame((state, dt) => {
     const t = reduced ? 4 : state.clock.elapsedTime
@@ -169,12 +175,7 @@ function Backdrop({ palette, reduced, kinkRef }) {
     field.uniforms.uTime.value = reduced ? 3 : t
     field.setShape(STRAND_SHAPES.home, size.width / size.height, palette.strands.strength)
 
-    const prev = gl.getRenderTarget()
-    gl.setRenderTarget(rt)
-    gl.setClearColor(0x000000, 0)
-    gl.clear()
-    gl.render(strandScene, cam)
-    gl.setRenderTarget(prev)
+    bloom.render(gl, strandScene, cam)
     gl.setClearColor(palette.bg, 1)
   })
 

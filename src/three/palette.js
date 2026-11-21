@@ -5,7 +5,7 @@
 export const PALETTES = {
   dark: {
     bg: '#030503',
-    strands: { a: '#b6f06a', b: '#7fc9b0', core: '#f4ffdc', additive: true, haze: 0.55, strength: 1 },
+    strands: { a: '#d2ff5c', b: '#5fb8d6', core: '#ffffe6', additive: true, strength: 1.1, core_glow: 0.6, bloom: [0.7, 0.8, 0.55, 0.28] },
     flame: { a: '#06260e', b: '#2fb84b', c: '#d6f59a', intensity: 0.85 },
     glass: ['#ffffff', '#dcffd0', '#b8f59a', '#ffffff', '#cfe6cb', '#8fe79a'],
     solid: ['#aecbaa', '#46d35b', '#0f2416', '#b6f06a'],
@@ -34,7 +34,7 @@ export const PALETTES = {
   },
   light: {
     bg: '#eef2ec',
-    strands: { a: '#1f8a3a', b: '#4f8f7a', core: '#46d35b', additive: false, haze: 0.4, strength: 0.8 },
+    strands: { a: '#1f8a3a', b: '#3d8c86', core: '#2fb84b', additive: false, strength: 0.9, core_glow: 0.35, bloom: [0.7, 0.45, 0.3, 0.2] },
     flame: { a: '#cfe9c4', b: '#6cd45f', c: '#f4ffd6', intensity: 0.72 },
     glass: ['#ffffff', '#e8f8df', '#c4ecaa', '#ffffff', '#dbeed6', '#a6e39a'],
     solid: ['#0f2416', '#23a045', '#aecbaa', '#6cc94a'],
