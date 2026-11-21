@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import Env from './Env.jsx'
+import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
 import { PALETTES } from './palette.js'
 import { TOP_D, TOP_W, makeBoardTexture, makeCardTexture, makeShadowTexture } from './textures.js'
 import { easeOutBack, easeOutCubic, range, seeded, smooth, useInView } from './utils.js'
@@ -14,6 +15,7 @@ import { easeOutBack, easeOutCubic, range, seeded, smooth, useInView } from './u
     0.25–0.50  Design    — liquid settles into a board, scaffold cubes pop up
     0.50–0.75  Develop   — task cards fly in and land in their columns
     0.75–1.00  Launch    — camera settles isometric, cards lift, pulse rings
+  Everything solid is glass (transmission) refracting an opaque flame-field floor.
 */
 
 const BOARD_W = 5.8
@@ -148,20 +150,18 @@ function Liquid({ shared, palette }) {
   }, [])
   const base = useMemo(() => Float32Array.from(geom.attributes.position.array), [geom])
   const mat = useMemo(
-    () => new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1, side: THREE.DoubleSide, transparent: true }),
+    () => makeGlass({ thickness: 0.9, roughness: 0.04, ior: 1.5, iridescence: 0.8, iridescenceThicknessRange: [180, 620] }),
     [],
   )
   const wasFlat = useRef(false)
   useEffect(() => {
-    mat.color.set(palette.chrome)
+    mat.color.set(palette.liquid)
   }, [palette, mat])
 
   useFrame(() => {
     const { p, t } = shared
-    const vis = 1 - smooth(p, 0.4, 0.5)
-    mesh.current.visible = vis > 0.001
+    mesh.current.visible = p < 0.47
     if (!mesh.current.visible) return
-    mat.opacity = vis
 
     const grow = 0.22 + 0.78 * smooth(p, 0, 0.17)
     mesh.current.scale.set(grow, 1, grow)
@@ -191,12 +191,12 @@ function Liquid({ shared, palette }) {
 function Board({ shared, palette, boardTex, shadowTex }) {
   const group = useRef()
   const geom = useMemo(() => new RoundedBoxGeometry(BOARD_W, BOARD_H, BOARD_D, 4, 0.12), [])
-  const mat = useMemo(() => new THREE.MeshPhysicalMaterial({ roughness: 0.5, clearcoat: 0.6, clearcoatRoughness: 0.35, transparent: true }), [])
+  const mat = useMemo(() => makeGlass({ thickness: 0.6, roughness: 0.24, iridescence: 0.25 }), [])
   const topMat = useMemo(() => new THREE.MeshBasicMaterial({ transparent: true, toneMapped: false }), [])
   const shadowMat = useMemo(() => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }), [])
 
   useEffect(() => {
-    mat.color.set(palette.board)
+    mat.color.set(palette.boardTint)
     topMat.map = boardTex
     topMat.needsUpdate = true
     shadowMat.map = shadowTex
@@ -208,8 +208,7 @@ function Board({ shared, palette, boardTex, shadowTex }) {
     const rise = smooth(p, 0.26, 0.44)
     group.current.visible = rise > 0.001
     group.current.position.y = THREE.MathUtils.lerp(-1.4, 0, rise)
-    mat.opacity = rise
-    shadowMat.opacity = rise
+    shadowMat.opacity = rise * 0.8
     topMat.opacity = smooth(p, 0.42, 0.54)
   })
 
@@ -231,10 +230,10 @@ function Scaffold({ shared, palette }) {
   const mesh = useRef()
   const PER = 14
   const geom = useMemo(() => new RoundedBoxGeometry(0.26, 0.26, 0.26, 2, 0.05), [])
-  const mat = useMemo(() => new THREE.MeshPhysicalMaterial({ roughness: 0.3, clearcoat: 1 }), [])
+  const mat = useMemo(() => makeGlass({ thickness: 0.3, roughness: 0.08 }), [])
   const tmp = useMemo(() => new THREE.Object3D(), [])
   useEffect(() => {
-    mat.color.set(palette.keyCube)
+    mat.color.set(palette.cube)
   }, [palette, mat])
 
   useFrame(() => {
@@ -277,8 +276,8 @@ function Cards({ shared, palette, cardTexes }) {
       }),
     [],
   )
-  const mats = useMemo(() => data.map(() => new THREE.MeshPhysicalMaterial({ roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.2 })), [data])
-  const topMats = useMemo(() => data.map(() => new THREE.MeshBasicMaterial({ toneMapped: false })), [data])
+  const mats = useMemo(() => data.map(() => makeGlass({ thickness: 0.22, roughness: 0.16 })), [data])
+  const topMats = useMemo(() => data.map(() => new THREE.MeshBasicMaterial({ toneMapped: false, transparent: true })), [data])
 
   useEffect(() => {
     data.forEach((d, i) => {
@@ -318,7 +317,11 @@ function Pulse({ shared, palette }) {
   const geom = useMemo(() => new THREE.RingGeometry(0.985, 1, 128), [])
   const mats = useMemo(() => [0, 1].map(() => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide })), [])
   useEffect(() => {
-    mats.forEach((m) => m.color.set(palette.glow))
+    mats.forEach((m) => {
+      m.color.set(palette.pulse)
+      m.blending = palette.bg === '#030503' ? THREE.AdditiveBlending : THREE.NormalBlending
+      m.needsUpdate = true
+    })
   }, [palette, mats])
 
   useFrame(() => {
@@ -336,6 +339,28 @@ function Pulse({ shared, palette }) {
   return mats.map((m, i) => (
     <mesh key={i} ref={(el) => (rings.current[i] = el)} geometry={geom} material={m} rotation-x={-Math.PI / 2} position={[0.4, TOP_Y + 0.01, 0.3]} />
   ))
+}
+
+/* ---------- flame-field floor: the light every glass piece refracts ---------- */
+function Floor({ shared, palette }) {
+  const mat = useMemo(makeFlameMaterial, [])
+  const { gl } = useThree()
+  useEffect(() => {
+    applyFlamePalette(mat, palette)
+    mat.uniforms.uScale.value.set(12.5, 16)
+    gl.setClearColor(palette.bg, 1)
+  }, [mat, palette, gl])
+  useFrame(() => {
+    const { p, t } = shared
+    mat.uniforms.uTime.value = t
+    const stage = 0.55 + 0.35 * smooth(p, 0.2, 0.45) + 0.25 * smooth(p, 0.76, 0.9) * (0.85 + 0.15 * Math.sin(t * 2.2))
+    mat.uniforms.uIntensity.value = palette.flame.intensity * stage
+  })
+  return (
+    <mesh rotation-x={-Math.PI / 2} position={[0.3, -0.42, 0.2]} material={mat}>
+      <planeGeometry args={[80, 80]} />
+    </mesh>
+  )
 }
 
 /* ---------- DOM dimension labels pinned to world points ---------- */
@@ -398,6 +423,7 @@ function Scene({ theme, progress, labels }) {
       <ambientLight intensity={palette.ambient} />
       <directionalLight position={[5, 9, 4]} intensity={palette.key} />
       <directionalLight position={[-6, 3, -5]} intensity={palette.rim * 0.6} color={palette.rimColor} />
+      <Floor shared={shared} palette={palette} />
       <Grid shared={shared} palette={palette} />
       <Liquid shared={shared} palette={palette} />
       <Board shared={shared} palette={palette} boardTex={textures.board} shadowTex={textures.shadow} />
@@ -417,11 +443,10 @@ export default function StoryCanvas({ theme, progress, labels }) {
       <Canvas
         frameloop={visible ? 'always' : 'never'}
         dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        camera={{ fov: 30, near: 0.1, far: 100, position: [0, 10, 5] }}
+        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+        camera={{ fov: 30, near: 0.1, far: 200, position: [0, 10, 5] }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.NeutralToneMapping
-          gl.setClearColor(0x000000, 0)
         }}
       >
         <Scene theme={theme} progress={progress} labels={labels} />

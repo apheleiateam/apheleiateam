@@ -41,6 +41,11 @@ export default function App() {
   return (
     <>
       <SvgDefs />
+      <div className="ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <Nav onContact={openContact} />
       <main>
         <Hero onContact={openContact} />

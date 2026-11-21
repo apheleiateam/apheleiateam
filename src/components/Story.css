@@ -13,7 +13,13 @@
   isolation: isolate;
 }
 
-.story-canvas { position: absolute; inset: 0; z-index: -2; }
+.story-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+}
 .story-canvas canvas { display: block; }
 
 /* soft "window light" streaks, fade in once the board forms */
@@ -48,17 +54,22 @@
   pointer-events: none;
 }
 
-.story__copy { max-width: 430px; }
+.story__card {
+  max-width: 460px;
+  padding: 30px 32px;
+  border-radius: 28px;
+  pointer-events: auto;
+}
 .story__counter { margin-bottom: 22px; color: var(--text); }
 .story__counter span { color: var(--accent-bright); }
 
 .story__title {
   margin-bottom: 20px;
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(2.3rem, 4.2vw, 3.8rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
 }
 .story__word {
   display: inline-block;
@@ -79,11 +90,12 @@
 .story__progress {
   position: absolute;
   left: var(--gutter);
-  right: var(--gutter);
-  bottom: 28px;
+  bottom: 24px;
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
+  padding: 12px 22px;
+  border-radius: 999px;
 }
 .story__scroll { display: inline-flex; align-items: center; gap: 8px; color: var(--text); }
 .story__scroll svg { width: 14px; height: 14px; animation: nudge 2.2s ease-in-out infinite; }
@@ -115,9 +127,10 @@
 
 @media (max-width: 900px) {
   .story { height: 360vh; }
-  .story__overlay { justify-content: flex-start; padding-top: 96px; }
-  .story__copy { max-width: 520px; }
-  .story__title { font-size: clamp(2rem, 8vw, 2.8rem); margin-bottom: 12px; }
+  .story__overlay { justify-content: flex-start; padding-top: 84px; }
+  .story__card { max-width: 520px; padding: 20px 22px; border-radius: 22px; }
+  .story__progress { right: var(--gutter); justify-content: center; padding: 10px 14px; }
+  .story__title { font-size: clamp(1.6rem, 6.6vw, 2.3rem); margin-bottom: 12px; }
   .story__body { font-size: 0.92rem; }
   .story__progress ol { gap: 10px; }
   .story__progress i { width: 40px; }

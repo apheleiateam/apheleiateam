@@ -102,7 +102,7 @@ This repository is the source for **[apheleiateam.vercel.app](https://apheleiate
 | Build tool | [Vite 5](https://vitejs.dev) with `@vitejs/plugin-react` |
 | 3D | [three.js](https://threejs.org) via [React Three Fiber](https://r3f.docs.pmnd.rs) — lazy-loaded into its own chunk |
 | Styling | Plain CSS — one stylesheet per component, tokens in `src/index.css` |
-| Type | [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) (display) + [Inter](https://fonts.google.com/specimen/Inter) (text), via Google Fonts |
+| Type | [Quicksand](https://fonts.google.com/specimen/Quicksand) (display, stand-in for Davigo Pro) + [Inter](https://fonts.google.com/specimen/Inter) (text), via Google Fonts |
 | Hosting | [Vercel](https://vercel.com) |
 
 ### Quick start
@@ -173,22 +173,33 @@ Most copy lives right next to the component that renders it, in a constant at th
 | 3D scene colours | `src/three/palette.js` |
 | Principle quotes and toolkit | `PRINCIPLES` and `TOOLKIT` in `src/components/Principles.jsx` |
 | About-section stats | `STATS` in `src/components/About.jsx` |
-| Page title and meta description | `index.html` |
+| Page title and meta description | `inde### Brand & theming
 
-### Brand & theming
-
-The site ships a **light and a dark theme**, both built from the Apheleia palette. It follows the visitor's OS setting until they use the sun/moon toggle in the nav; the choice is remembered. All colours are CSS custom properties at the top of `src/index.css` (dark is the base, `[data-theme='light']` overrides it), so a change there flows through every section and illustration. The WebGL scenes take their colours from `src/three/palette.js`.
+**Palette — "Eternal flame"**: a green flame burning on a marble column in the dark. The site ships a **dark** theme (night + flame) and a **light** theme (marble), follows the visitor's OS setting until they use the sun/moon toggle in the nav, and remembers the choice. Everything is **glassmorphic**: frosted panels (`.glass`) over slowly drifting flame glows, and the 3D ribbon, board, cubes and task cards are real refractive glass bending a flame-coloured light field.
 
 | | Colour | Hex | Use |
 |:-:|---|---|---|
-| ![#142D3A](https://placehold.co/18x18/142D3A/142D3A.png) | Deep Navy | `#142D3A` | Primary brand colour |
-| ![#20A69A](https://placehold.co/18x18/20A69A/20A69A.png) | Teal | `#20A69A` | Buttons & highlights |
-| ![#F5F7F4](https://placehold.co/18x18/F5F7F4/F5F7F4.png) | Soft Ivory | `#F5F7F4` | Main text on dark |
-| ![#DCEBE7](https://placehold.co/18x18/DCEBE7/DCEBE7.png) | Pale Sage | `#DCEBE7` | Muted text & borders |
-| ![#263746](https://placehold.co/18x18/263746/263746.png) | Slate | `#263746` | Illustration shading |
-| ![#060D12](https://placehold.co/18x18/060D12/060D12.png) | Night | `#060D12` | Page background |
+| ![#030503](https://placehold.co/18x18/030503/030503.png) | Night | `#030503` | Dark background |
+| ![#46D35B](https://placehold.co/18x18/46D35B/46D35B.png) | Flame | `#46D35B` | Primary accent, buttons |
+| ![#9CF06B](https://placehold.co/18x18/9CF06B/9CF06B.png) | Lime glow | `#9CF06B` | Highlights, glows |
+| ![#E2F7B8](https://placehold.co/18x18/E2F7B8/E2F7B8.png) | White-hot core | `#E2F7B8` | Gradient cores |
+| ![#239447](https://placehold.co/18x18/239447/239447.png) | Bowl green | `#239447` | Deep accent |
+| ![#AECBAA](https://placehold.co/18x18/AECBAA/AECBAA.png) | Celadon marble | `#AECBAA` | Secondary surfaces |
+| ![#EEF2EC](https://placehold.co/18x18/EEF2EC/EEF2EC.png) | Marble white | `#EEF2EC` | Light background |
+| ![#0C1F12](https://placehold.co/18x18/0C1F12/0C1F12.png) | Deep forest | `#0C1F12` | Light-theme text |
+
+All colours are CSS custom properties at the top of `src/index.css` (dark is the base, `[data-theme='light']` overrides it). The WebGL scenes take theirs from `src/three/palette.js`, and the flame light field is a shader in `src/three/glow.js`.
 
 **Preview a theme** without changing your saved choice by adding `?theme=light` or `?theme=dark` to the URL — for example [apheleiateam.vercel.app/?theme=light](https://apheleiateam.vercel.app/?theme=light).
+
+**Typeface.** The display face we want is [Davigo Pro](https://fontesk.com/davigo-pro-font/) by Lettertype Studio, but it is listed as *free for personal use* — a company website needs a commercial licence or written permission from the designer. Until then the site uses **Quicksand** (SIL Open Font License), the closest free rounded geometric match. `--display` in `src/index.css` already lists `'Davigo Pro'` first, so once licensed:
+
+1. Put the web font files in `public/fonts/` (e.g. `DavigoPro-Bold.woff2`).
+2. Add an `@font-face` for `'Davigo Pro'` at the top of `src/index.css` pointing at them.
+
+No other change is needed — every heading, button and nav item picks it up.
+
+e=light).
 
 ### How the contact form works
 

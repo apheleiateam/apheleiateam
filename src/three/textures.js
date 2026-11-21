@@ -41,11 +41,11 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
   g.save()
   g.translate(34, 38)
   g.scale(28 / 24, 28 / 24)
-  g.fillStyle = pal.glow
+  g.fillStyle = pal.accent
   g.fill(new Path2D(SPARKLE))
   g.restore()
   g.fillStyle = pal.panelText
-  g.font = '400 36px "Instrument Serif", Georgia, serif'
+  g.font = '700 32px Quicksand, "Varela Round", sans-serif'
   g.fillText('Apheleia', 74, 64)
 
   const items = ['Overview', 'Projects', 'Boards', 'Analytics', 'Team', 'Settings']
@@ -58,7 +58,7 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
       rr(g, 24, y - 30, sx - 48, 44, 12)
       g.fill()
     }
-    g.fillStyle = active ? pal.glow : pal.panelMuted
+    g.fillStyle = active ? pal.accent : pal.panelMuted
     rr(g, 42, y - 17, 16, 16, 4)
     g.fill()
     g.fillStyle = active ? pal.panelText : pal.panelMuted
@@ -79,7 +79,7 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
   // header
   const mx = sx + 34
   g.fillStyle = pal.panelText
-  g.font = '400 40px "Instrument Serif", Georgia, serif'
+  g.font = '700 36px Quicksand, "Varela Round", sans-serif'
   g.fillText('Project board', mx, 70)
   g.font = '500 15px Inter, system-ui, sans-serif'
   ;['Board', 'List', 'Timeline'].forEach((t, i) => {
@@ -120,8 +120,10 @@ export function makeBoardTexture(pal, { cols, rows, slots, cardW, cardD, sidebar
 
 export function makeCardTexture({ bg, ink }, seed, avatarColors) {
   const [c, g] = canvas2d(512, 318)
+  g.globalAlpha = 0.4
   g.fillStyle = bg
   g.fillRect(0, 0, 512, 318)
+  g.globalAlpha = 1
 
   g.globalAlpha = 0.16
   g.fillStyle = ink

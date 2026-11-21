@@ -10,16 +10,13 @@
 
 /* ---------- 3D stage ---------- */
 .hero__stage { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.hero__glow {
+/* the canvas is opaque (glass needs a backdrop to refract), so fade its foot into the page */
+.ribbon-canvas {
   position: absolute;
-  left: 50%;
-  top: 58%;
-  width: min(1400px, 140vw);
-  height: 620px;
-  translate: -50% -50%;
-  background: radial-gradient(closest-side, rgb(var(--accent-rgb) / var(--hero-glow, 0.16)), transparent);
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, #000 82%, transparent);
 }
-.ribbon-canvas { position: absolute; inset: 0; }
 .ribbon-canvas canvas { display: block; }
 
 .hero__labels span {
@@ -44,16 +41,17 @@
   margin-bottom: 22px;
 }
 .hero__title {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(3.2rem, 7.6vw, 6.8rem);
-  line-height: 0.95;
-  letter-spacing: -0.028em;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.7rem, 6vw, 5.3rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
 }
 .hero__aside {
-  max-width: 34ch;
-  padding-top: 0.7em;
-  font-size: 0.98rem;
+  max-width: 360px;
+  padding: 18px 22px;
+  border-radius: 22px;
+  font-size: 0.95rem;
   color: var(--text-muted);
 }
 
@@ -66,7 +64,12 @@
   gap: 18px;
   text-align: center;
 }
-.hero__question { font-size: 0.95rem; color: var(--text-muted); }
+.hero__question {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
 
 .hero__foot {
   display: flex;
@@ -83,7 +86,8 @@
 @media (max-width: 860px) {
   .hero { padding-top: 96px; }
   .hero__row { flex-direction: column; gap: 14px; }
-  .hero__aside { padding-top: 0; }
+  .hero__aside { max-width: none; }
+  .hero__question { border-radius: 18px; }
   .hero__bottom { padding-top: clamp(200px, 34vh, 320px); }
   .hero__est { display: none; }
 }

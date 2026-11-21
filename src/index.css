@@ -1,75 +1,96 @@
 /* ==========================================================================
    Apheleia — design tokens
-   Brand palette: Deep Navy / Teal / Soft Ivory / Pale Sage / Slate.
-   Dark is the base; [data-theme='light'] overrides it (set in index.html + theme.jsx).
+   Palette "Eternal flame": night black, flame green → lime → white-hot core,
+   and celadon marble. Dark is the base; [data-theme='light'] ("marble") overrides it.
    ========================================================================== */
 :root {
-  --bg: #060d12;
-  --bg-rgb: 6 13 18;
-  --bg-raised: #0b171e;
-  --navy: #142d3a;
-  --slate: #263746;
-  --ivory: #f5f7f4;
-  --sage: #dcebe7;
+  --bg: #030503;
+  --bg-rgb: 3 5 3;
+  --bg-raised: #0a120c;
+  --navy: #0f2416;   /* deep-green surface (legacy name, used by the SVG art) */
+  --slate: #1c3a24;
+  --ivory: #eef4ec;  /* marble white */
+  --sage: #aecbaa;   /* celadon marble */
 
-  --accent: #20a69a;
-  --accent-rgb: 32 166 154;
-  --accent-bright: #4fe0cf;
-  --accent-soft: #b5ece4;
-  --accent-deep: #20a69a;
-  --on-accent: #03201d;
-  --orb-hi: #2f6c74;
-  --shadow: rgb(0 0 0 / 0.5);
+  --accent: #46d35b;          /* flame green */
+  --accent-rgb: 70 211 91;
+  --accent-bright: #9cf06b;   /* lime glow */
+  --accent-soft: #e2f7b8;     /* white-hot core */
+  --accent-deep: #239447;     /* bowl green */
+  --lime-rgb: 182 240 106;
+  --marble-rgb: 174 203 170;
+  --on-accent: #041307;
+  --orb-hi: #3f7a4e;
+  --shadow: rgb(0 0 0 / 0.55);
   --gobo-color: rgb(var(--accent-rgb) / 0.08);
   --gobo-blend: screen;
   --grain: 0.05;
-  --hero-glow: 0.16;
+  --ambient: 1;
+
+  /* glass */
+  --glass-fill: 255 255 255;
+  --glass-a: 0.075;
+  --glass-b: 0.02;
+  --glass-edge: rgb(255 255 255 / 0.12);
+  --glass-hi: rgb(255 255 255 / 0.42);
+  --glass-blur: 22px;
+  --glass-tint: 0.32;
+  --glass-shadow: 0 24px 60px -28px rgb(0 0 0 / 0.8);
 
   --text: var(--ivory);
-  --text-muted: rgb(220 235 231 / 0.64);
-  --text-dim: rgb(220 235 231 / 0.42);
-  --border: rgb(220 235 231 / 0.09);
-  --border-strong: rgb(220 235 231 / 0.18);
+  --text-muted: rgb(214 230 212 / 0.66);
+  --text-dim: rgb(214 230 212 / 0.42);
+  --border: rgb(214 230 212 / 0.09);
+  --border-strong: rgb(214 230 212 / 0.18);
 
-  --serif: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  /* Display face: Quicksand (OFL) stands in for Davigo Pro, which is personal-use only.
+     Once licensed, add its @font-face (see README) — it is already first in this stack. */
+  --display: 'Davigo Pro', 'Quicksand', 'Varela Round', system-ui, sans-serif;
   --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, Consolas, monospace;
   --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
-  --radius: 18px;
+  --radius: 20px;
   --max: 1240px;
   --gutter: clamp(16px, 4vw, 40px);
   color-scheme: dark;
 }
 
 [data-theme='light'] {
-  --bg: #f5f7f4;
-  --bg-rgb: 245 247 244;
-  --bg-raised: #ffffff;
-  --navy: #dcebe7;
-  --slate: #c3d9d3;
-  --accent-bright: #16968a;
-  --accent-soft: #5cc9bd;
-  --accent-deep: #0e756c;
+  --bg: #eef2ec;
+  --bg-rgb: 238 242 236;
+  --bg-raised: #f9fbf8;
+  --navy: #d3e2d1;
+  --slate: #b7ccb5;
+  --accent: #23a045;
+  --accent-rgb: 35 160 69;
+  --accent-bright: #1b8a3a;
+  --accent-soft: #7fd86a;
+  --accent-deep: #0f5a24;
   --on-accent: #ffffff;
   --orb-hi: #ffffff;
-  --text: #142d3a;
-  --text-muted: rgb(38 55 70 / 0.74);
-  --text-dim: rgb(38 55 70 / 0.52);
-  --border: rgb(20 45 58 / 0.09);
-  --border-strong: rgb(20 45 58 / 0.18);
-  --shadow: rgb(20 45 58 / 0.18);
-  --gobo-color: rgb(20 45 58 / 0.07);
+  --text: #0c1f12;
+  --text-muted: rgb(20 40 26 / 0.72);
+  --text-dim: rgb(20 40 26 / 0.5);
+  --border: rgb(12 31 18 / 0.09);
+  --border-strong: rgb(12 31 18 / 0.18);
+  --shadow: rgb(12 31 18 / 0.18);
+  --gobo-color: rgb(12 31 18 / 0.07);
   --gobo-blend: multiply;
   --grain: 0.035;
-  --hero-glow: 0.12;
+  --ambient: 0.8;
+  --glass-a: 0.6;
+  --glass-b: 0.3;
+  --glass-tint: 0;
+  --glass-edge: rgb(255 255 255 / 0.75);
+  --glass-hi: rgb(255 255 255 / 1);
+  --glass-shadow: 0 22px 50px -26px rgb(12 31 18 / 0.28);
   color-scheme: light;
 }
-[data-theme='light'] .glass {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.55));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 12px 30px -16px rgb(20 45 58 / 0.22);
-}
 [data-theme='light'] .text-gradient {
-  background-image: linear-gradient(100deg, #0e756c 0%, #20a69a 55%, #4fc2b6 100%);
+  background-image: linear-gradient(100deg, #0f5a24 0%, #23a045 50%, #6cc94a 100%);
+}
+[data-theme='light'] .btn--primary {
+  background: linear-gradient(135deg, #2bb44f, #0f5a24);
 }
 
 /* ---------- Base ---------- */
@@ -139,11 +160,11 @@ img, svg { display: block; max-width: 100%; }
 
 /* ---------- Type ---------- */
 .h2 {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(2.1rem, 3.6vw, 3.1rem);
-  line-height: 1.04;
-  letter-spacing: -0.015em;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.85rem, 2.9vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 .lead { color: var(--text-muted); font-size: 0.98rem; max-width: 42ch; }
 .micro {
@@ -166,7 +187,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .text-gradient {
-  background: linear-gradient(100deg, var(--accent-soft) 0%, var(--accent-bright) 42%, var(--accent) 100%);
+  background: linear-gradient(100deg, var(--accent-soft) 0%, var(--accent-bright) 38%, var(--accent) 78%, var(--accent-deep) 120%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -177,10 +198,11 @@ img, svg { display: block; max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--serif);
-  font-size: 1.65rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.4rem;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
 }
 .brand svg {
   width: 24px;
@@ -198,9 +220,12 @@ img, svg { display: block; max-width: 100%; }
   padding: 5px 12px 5px 10px;
   border-radius: 999px;
   border: 1px solid rgb(var(--accent-rgb) / 0.35);
-  background: rgb(var(--accent-rgb) / 0.08);
+  background: linear-gradient(135deg, rgb(var(--accent-rgb) / 0.16), rgb(var(--accent-rgb) / 0.04));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
   font-size: 0.74rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--text);
 }
@@ -222,8 +247,10 @@ img, svg { display: block; max-width: 100%; }
   padding: 0 24px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s, border-color 0.25s;
 }
@@ -232,26 +259,32 @@ img, svg { display: block; max-width: 100%; }
 
 .btn--primary {
   color: var(--on-accent);
-  background: linear-gradient(135deg, var(--accent-bright), var(--accent-deep));
+  /* a flame: white-hot core -> lime -> green */
+  background: linear-gradient(135deg, var(--accent-soft) -25%, var(--accent-bright) 22%, var(--accent) 62%, var(--accent-deep) 130%);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    0 0 0 1px rgb(var(--accent-rgb) / 0.5),
-    0 12px 32px -10px rgb(var(--accent-rgb) / 0.8);
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    inset 0 -3px 8px rgb(0 0 0 / 0.14),
+    0 0 0 1px rgb(var(--accent-rgb) / 0.55),
+    0 12px 36px -8px rgb(var(--accent-rgb) / 0.75);
 }
 .btn--primary:hover {
   transform: translateY(-2px);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.4),
-    0 0 0 1px rgb(var(--accent-rgb) / 0.7),
-    0 18px 44px -10px rgb(var(--accent-rgb) / 0.95);
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    inset 0 -3px 8px rgb(0 0 0 / 0.14),
+    0 0 0 1px rgb(var(--accent-rgb) / 0.75),
+    0 18px 48px -8px rgb(var(--accent-rgb) / 0.95);
 }
 
 .btn--outline {
   color: var(--text);
-  background: rgb(255 255 255 / 0.02);
-  border-color: var(--border-strong);
+  background: linear-gradient(145deg, rgb(var(--glass-fill) / var(--glass-a)), rgb(var(--glass-fill) / var(--glass-b)));
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
 }
-.btn--outline:hover { border-color: rgb(var(--accent-rgb) / 0.7); background: rgb(var(--accent-rgb) / 0.1); }
+.btn--outline:hover { border-color: rgb(var(--accent-rgb) / 0.7); background: rgb(var(--accent-rgb) / 0.12); }
 
 .btn--sm { height: 38px; padding: 0 16px; font-size: 0.8rem; gap: 8px; }
 .btn--sm svg { width: 14px; height: 14px; }
@@ -272,13 +305,62 @@ img, svg { display: block; max-width: 100%; }
 .link-arrow:hover { color: var(--accent-bright); }
 .link-arrow:hover svg { transform: translateX(4px); }
 
+/* Glassmorphism: translucent fill, blurred backdrop, lit top edge and a
+   gradient rim (::after) that catches light top-left and flame bottom-right. */
 .glass {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015));
-  border: 1px solid var(--border);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  position: relative;
+  background:
+    linear-gradient(145deg, rgb(var(--glass-fill) / var(--glass-a)), rgb(var(--glass-fill) / var(--glass-b))),
+    rgb(var(--bg-rgb) / var(--glass-tint));
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--glass-shadow);
 }
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(140deg, var(--glass-hi), transparent 30%, transparent 64%, rgb(var(--accent-rgb) / 0.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* Slow-drifting flame glows behind everything, so the glass has light to bend. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--ambient);
+}
+.ambient span {
+  position: absolute;
+  border-radius: 50%;
+  animation: drift 28s ease-in-out infinite alternate;
+}
+.ambient span:nth-child(1) {
+  width: 52vw; height: 52vw; left: -14vw; top: 4vh;
+  background: radial-gradient(circle, rgb(var(--accent-rgb) / 0.26), transparent 62%);
+}
+.ambient span:nth-child(2) {
+  width: 44vw; height: 44vw; right: -10vw; top: 38vh;
+  background: radial-gradient(circle, rgb(var(--lime-rgb) / 0.17), transparent 62%);
+  animation-duration: 34s;
+  animation-direction: alternate-reverse;
+}
+.ambient span:nth-child(3) {
+  width: 38vw; height: 38vw; left: 34vw; bottom: -14vh;
+  background: radial-gradient(circle, rgb(var(--marble-rgb) / 0.16), transparent 62%);
+  animation-duration: 40s;
+}
+@keyframes drift { to { transform: translate3d(7vw, -9vh, 0) scale(1.18); } }
 
 .round-btn {
   display: grid;
@@ -288,8 +370,11 @@ img, svg { display: block; max-width: 100%; }
   height: 42px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  background: rgb(255 255 255 / 0.04);
+  border: 1px solid var(--glass-edge);
+  background: linear-gradient(145deg, rgb(var(--glass-fill) / var(--glass-a)), rgb(var(--glass-fill) / var(--glass-b)));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
   color: var(--text);
   transition: background 0.25s, border-color 0.25s, color 0.25s, opacity 0.25s;
 }

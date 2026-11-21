@@ -58,7 +58,8 @@ export default function Nav({ onContact }) {
 
   return (
     <header className={`nav${scrolled ? ' nav--scrolled' : ''}${open ? ' nav--open' : ''}`}>
-      <div className="container nav__inner">
+      <div className="container">
+        <div className="nav__bar glass">
         <a href="#home" className="brand nav__side" onClick={close}>
           <Sparkle />
           <span>Apheleia</span>
@@ -84,14 +85,13 @@ export default function Nav({ onContact }) {
             {open ? <Close /> : <Menu />}
           </button>
         </div>
-      </div>
+        </div>
 
-      <div className="nav__panel" id="nav-panel" hidden={!open}>
-        <div className="container">
+        <div className="nav__panel glass" id="nav-panel" hidden={!open}>
           <nav aria-label="Mobile">
             <Links active={active} onNavigate={close} />
           </nav>
-          <button type="button" className="btn btn--outline btn--sm" onClick={talk}>
+          <button type="button" className="btn btn--primary btn--sm" onClick={talk}>
             Let’s Talk <ArrowRight />
           </button>
         </div>

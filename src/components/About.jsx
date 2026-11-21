@@ -91,7 +91,7 @@ export default function About() {
           <ArchScene />
         </div>
 
-        <div className="about__copy reveal" style={{ '--d': '.1s' }}>
+        <div className="about__copy glass reveal" style={{ '--d': '.1s' }}>
           <span className="pill">About Apheleia</span>
           <h2 className="h2">
             A creative studio
@@ -108,7 +108,7 @@ export default function About() {
           </a>
         </div>
 
-        <dl className="stats reveal" style={{ '--d': '.2s' }}>
+        <dl className="stats glass reveal" style={{ '--d': '.2s' }}>
           {STATS.map((s) => (
             <div key={s.label} className="stat">
               <dt className="stat__label">{s.label}</dt>

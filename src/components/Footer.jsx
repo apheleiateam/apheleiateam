@@ -6,6 +6,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container">
+        <div className="footer__panel glass">
         <div className="footer__row">
           <a href="#home" className="brand">
             <Sparkle />
@@ -31,6 +32,7 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} Apheleia. All rights reserved.</span>
           <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           <span>Made with care in Tamil Nadu, India</span>
+        </div>
         </div>
       </div>
     </footer>

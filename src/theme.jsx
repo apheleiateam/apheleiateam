@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 // this keeps React in sync, follows the OS until the visitor picks, and remembers the choice.
 
 const KEY = 'apheleia-theme'
-const META = { dark: '#060d12', light: '#f5f7f4' }
+const META = { dark: '#030503', light: '#eef2ec' }
 const ThemeContext = createContext({ theme: 'dark', toggle: () => {} })
 
 const stored = () => {

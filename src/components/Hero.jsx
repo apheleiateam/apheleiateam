@@ -19,7 +19,6 @@ export default function Hero({ onContact }) {
   return (
     <section className="hero" id="home">
       <div className="hero__stage" aria-hidden="true">
-        <div className="hero__glow" />
         {webgl && (
           <Suspense fallback={null}>
             <RibbonCanvas theme={theme} labels={labels} labelCount={LABELS} />
@@ -38,19 +37,19 @@ export default function Hero({ onContact }) {
           <h1 className="hero__title reveal" style={{ '--d': '.06s' }}>
             Ideas to <span className="text-gradient">Impact.</span>
           </h1>
-          <p className="hero__aside reveal" style={{ '--d': '.14s' }}>
-            At Apheleia, we design and build digital products that feel effortless — simple on the
-            surface, engineered to scale underneath.
-          </p>
+          <div className="hero__aside glass reveal" style={{ '--d': '.14s' }}>
+            <p>
+              At Apheleia, we design and build digital products that feel effortless — simple on the
+              surface, engineered to scale underneath.
+            </p>
+          </div>
         </div>
         <span className="pill reveal" style={{ '--d': '.2s' }}>Crafting digital simplicity</span>
       </div>
 
       <div className="container hero__bottom">
-        <p className="hero__question reveal" style={{ '--d': '.3s' }}>
-          Have an idea worth building?
-          <br />
-          Let’s give it shape.
+        <p className="hero__question glass reveal" style={{ '--d': '.3s' }}>
+          Have an idea worth building? Let’s give it shape.
         </p>
         <button type="button" className="btn btn--primary reveal" style={{ '--d': '.36s' }} onClick={() => onContact()}>
           Start a Project <ArrowRight />

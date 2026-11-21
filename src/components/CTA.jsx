@@ -7,7 +7,7 @@ export default function CTA({ onContact }) {
     <section className="section cta-wrap" id="contact">
       <Silk className="cta-wrap__silk" strands={28} />
       <div className="container">
-        <div className="cta reveal">
+        <div className="cta glass reveal">
           <Sparkle className="cta__star" />
           <h2 className="cta__title">
             Ready to create

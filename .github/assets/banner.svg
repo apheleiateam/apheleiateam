@@ -1,43 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420" role="img" aria-label="Apheleia — Ideas to Impact">
   <defs>
     <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#b5ece4"/>
-      <stop offset=".5" stop-color="#4fe0cf"/>
-      <stop offset="1" stop-color="#20a69a"/>
+      <stop offset="0" stop-color="#e2f7b8"/>
+      <stop offset=".5" stop-color="#9cf06b"/>
+      <stop offset="1" stop-color="#46d35b"/>
     </linearGradient>
     <linearGradient id="impact" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#b5ece4"/>
-      <stop offset=".55" stop-color="#4fe0cf"/>
-      <stop offset="1" stop-color="#20a69a"/>
+      <stop offset="0" stop-color="#e2f7b8"/>
+      <stop offset=".55" stop-color="#9cf06b"/>
+      <stop offset="1" stop-color="#46d35b"/>
     </linearGradient>
     <radialGradient id="glowA" cx="78%" cy="40%" r="45%">
-      <stop offset="0" stop-color="#20a69a" stop-opacity=".38"/>
-      <stop offset="1" stop-color="#20a69a" stop-opacity="0"/>
+      <stop offset="0" stop-color="#46d35b" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#46d35b" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="glowB" cx="8%" cy="100%" r="40%">
-      <stop offset="0" stop-color="#142d3a" stop-opacity=".9"/>
-      <stop offset="1" stop-color="#142d3a" stop-opacity="0"/>
+      <stop offset="0" stop-color="#0f2416" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#0f2416" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="orbBody" cx="34%" cy="28%" r="80%">
-      <stop offset="0" stop-color="#2f6c74"/>
-      <stop offset=".42" stop-color="#142d3a"/>
-      <stop offset="1" stop-color="#060d12"/>
+      <stop offset="0" stop-color="#239447"/>
+      <stop offset=".42" stop-color="#0f2416"/>
+      <stop offset="1" stop-color="#030503"/>
     </radialGradient>
     <radialGradient id="orbRim" cx="40%" cy="38%" r="65%">
-      <stop offset=".72" stop-color="#4fe0cf" stop-opacity="0"/>
-      <stop offset=".96" stop-color="#4fe0cf" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#b5ece4" stop-opacity=".9"/>
+      <stop offset=".72" stop-color="#9cf06b" stop-opacity="0"/>
+      <stop offset=".96" stop-color="#9cf06b" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#e2f7b8" stop-opacity=".9"/>
     </radialGradient>
     <linearGradient id="ring" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#20a69a" stop-opacity="0"/>
-      <stop offset=".55" stop-color="#4fe0cf"/>
-      <stop offset="1" stop-color="#b5ece4" stop-opacity=".15"/>
+      <stop offset="0" stop-color="#46d35b" stop-opacity="0"/>
+      <stop offset=".55" stop-color="#9cf06b"/>
+      <stop offset="1" stop-color="#e2f7b8" stop-opacity=".15"/>
     </linearGradient>
     <linearGradient id="silk" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#20a69a" stop-opacity="0"/>
-      <stop offset=".35" stop-color="#4fe0cf" stop-opacity=".9"/>
-      <stop offset=".72" stop-color="#20a69a" stop-opacity=".6"/>
-      <stop offset="1" stop-color="#b5ece4" stop-opacity="0"/>
+      <stop offset="0" stop-color="#46d35b" stop-opacity="0"/>
+      <stop offset=".35" stop-color="#9cf06b" stop-opacity=".9"/>
+      <stop offset=".72" stop-color="#46d35b" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#e2f7b8" stop-opacity="0"/>
     </linearGradient>
     <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="40"/>
@@ -47,12 +47,12 @@
   </defs>
 
   <g clip-path="url(#frame)">
-    <rect width="1280" height="420" fill="#060d12"/>
+    <rect width="1280" height="420" fill="#030503"/>
     <rect width="1280" height="420" fill="url(#glowA)"/>
     <rect width="1280" height="420" fill="url(#glowB)"/>
 
     <!-- faint grid lines -->
-    <g stroke="#dcebe7" stroke-opacity=".04">
+    <g stroke="#d6e6d4" stroke-opacity=".04">
       <path d="M0 105H1280M0 210H1280M0 315H1280"/>
       <path d="M160 0V420M320 0V420M480 0V420M640 0V420M800 0V420M960 0V420M1120 0V420"/>
     </g>
@@ -78,12 +78,12 @@
     </g>
 
     <!-- orb -->
-    <circle cx="1024" cy="214" r="130" fill="#20a69a" opacity=".3" filter="url(#blur)"/>
+    <circle cx="1024" cy="214" r="130" fill="#46d35b" opacity=".3" filter="url(#blur)"/>
     <g transform="rotate(-18 1010 200)" fill="none" stroke="url(#ring)">
       <path d="M842 200A168 46 0 0 1 1178 200" stroke-width="1.4" opacity=".45"/>
     </g>
     <circle cx="1010" cy="200" r="118" fill="url(#orbBody)"/>
-    <g clip-path="url(#orbClip)" fill="none" stroke="#b5ece4" stroke-opacity=".07">
+    <g clip-path="url(#orbClip)" fill="none" stroke="#e2f7b8" stroke-opacity=".07">
       <ellipse cx="1010" cy="200" rx="118" ry="21"/>
       <ellipse cx="1010" cy="200" rx="118" ry="50"/>
       <ellipse cx="1010" cy="200" rx="118" ry="78"/>
@@ -94,26 +94,26 @@
     <circle cx="1010" cy="200" r="118" fill="url(#orbRim)"/>
     <g transform="rotate(-18 1010 200)" fill="none" stroke="url(#ring)">
       <path d="M842 200A168 46 0 0 0 1178 200" stroke-width="2"/>
-      <circle cx="1094" cy="240" r="4" fill="#4fe0cf" stroke="none"/>
-      <circle cx="1094" cy="240" r="11" fill="#4fe0cf" stroke="none" opacity=".2"/>
+      <circle cx="1094" cy="240" r="4" fill="#9cf06b" stroke="none"/>
+      <circle cx="1094" cy="240" r="11" fill="#9cf06b" stroke="none" opacity=".2"/>
     </g>
 
     <!-- stars -->
-    <path transform="translate(1180 52) scale(.9)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#b5ece4" opacity=".85"/>
-    <path transform="translate(840 70) scale(.5)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#b5ece4" opacity=".6"/>
-    <path transform="translate(1196 330) scale(.45)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#b5ece4" opacity=".5"/>
+    <path transform="translate(1180 52) scale(.9)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#e2f7b8" opacity=".85"/>
+    <path transform="translate(840 70) scale(.5)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#e2f7b8" opacity=".6"/>
+    <path transform="translate(1196 330) scale(.45)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="#e2f7b8" opacity=".5"/>
 
     <!-- wordmark -->
     <g transform="translate(88 88)">
       <path transform="scale(1.25)" d="M12 0C12.7 6.4 17.6 11.3 24 12C17.6 12.7 12.7 17.6 12 24C11.3 17.6 6.4 12.7 0 12C6.4 11.3 11.3 6.4 12 0Z" fill="url(#accent)"/>
-      <text x="44" y="23" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing=".5" fill="#f5f7f4">Apheleia</text>
+      <text x="44" y="23" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing=".5" fill="#eef4ec">Apheleia</text>
     </g>
 
-    <text x="84" y="226" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-size="96" fill="#f5f7f4">Ideas to</text>
-    <text x="84" y="314" font-family="'Instrument Serif', Georgia, 'Times New Roman', serif" font-size="96" font-style="italic" fill="url(#impact)">Impact.</text>
+    <text x="84" y="226" font-family="Quicksand, 'Varela Round', 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="96" fill="#eef4ec">Ideas to</text>
+    <text x="84" y="314" font-family="Quicksand, 'Varela Round', 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="96" font-style="italic" fill="url(#impact)">Impact.</text>
 
-    <text x="88" y="368" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" letter-spacing="3" fill="#dcebe7" fill-opacity=".6">DESIGN · DEVELOPMENT · ARCHITECTURE · STRATEGY</text>
+    <text x="88" y="368" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" letter-spacing="3" fill="#d6e6d4" fill-opacity=".6">DESIGN · DEVELOPMENT · ARCHITECTURE · STRATEGY</text>
 
-    <rect x=".5" y=".5" width="1279" height="419" rx="23.5" fill="none" stroke="#dcebe7" stroke-opacity=".09"/>
+    <rect x=".5" y=".5" width="1279" height="419" rx="23.5" fill="none" stroke="#d6e6d4" stroke-opacity=".09"/>
   </g>
 </svg>

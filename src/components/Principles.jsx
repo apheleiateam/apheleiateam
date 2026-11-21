@@ -84,7 +84,7 @@ export default function Principles({ onContact }) {
           </div>
         </div>
 
-        <div className="toolkit reveal" style={{ '--d': '.2s' }}>
+        <div className="toolkit glass reveal" style={{ '--d': '.2s' }}>
           <p className="toolkit__label">Our toolkit</p>
           <ul>
             {TOOLKIT.map((t) => (

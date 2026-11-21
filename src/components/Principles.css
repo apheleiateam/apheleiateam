@@ -11,23 +11,27 @@
   min-height: 270px;
   padding: 30px 32px;
   border-radius: 22px;
+  border-radius: 28px;
   background:
-    radial-gradient(120% 80% at 0% 0%, rgb(var(--accent-rgb) / 0.14), transparent 60%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015));
+    radial-gradient(120% 80% at 0% 0%, rgb(var(--accent-rgb) / 0.16), transparent 60%),
+    linear-gradient(145deg, rgb(var(--glass-fill) / var(--glass-a)), rgb(var(--glass-fill) / var(--glass-b)));
 }
 .quote__mark {
   height: 30px;
   margin-bottom: 14px;
-  font-family: var(--serif);
+  font-family: var(--display);
+  font-weight: 700;
   font-size: 4.2rem;
   line-height: 0.85;
   color: var(--accent-bright);
 }
 .quote__text {
   margin-bottom: 26px;
-  font-family: var(--serif);
-  font-size: clamp(1.4rem, 2.1vw, 1.75rem);
-  line-height: 1.28;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 1.7vw, 1.45rem);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
   animation: quote-in 0.7s var(--ease);
 }
 @keyframes quote-in {
@@ -76,6 +80,7 @@
   border-color: var(--accent-bright);
 }
 
+.toolkit { padding: 28px 30px; border-radius: 28px; }
 .toolkit__label {
   margin-bottom: 20px;
   font-size: 0.72rem;

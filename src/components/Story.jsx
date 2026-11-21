@@ -84,6 +84,7 @@ export default function Story() {
         </div>
 
         <div className="container story__overlay">
+          <div className="story__card glass">
           <div className="story__copy" key={stage}>
             <p className="micro story__counter">
               00{stage + 1} — 004 <span>· {s.step}</span>
@@ -97,8 +98,9 @@ export default function Story() {
             </h2>
             <p className="story__body">{s.body}</p>
           </div>
+          </div>
 
-          <div className="story__progress" aria-hidden="true">
+          <div className="story__progress glass" aria-hidden="true">
             <span className="micro story__scroll">
               <ArrowDown /> Scroll
             </span>
