@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NAV_LINKS } from '../content.js'
 import useScrollSpy from '../hooks/useScrollSpy.js'
-import { useTheme } from '../theme.jsx'
-import { ArrowRight, Close, Menu, Moon, Sun } from './Icons.jsx'
+import { ArrowRight, Close, Menu } from './Icons.jsx'
+import ThemeSwitch from './ThemeSwitch.jsx'
 import Logo from './Logo.jsx'
 import './Nav.css'
 
@@ -19,16 +19,6 @@ function Links({ active, onNavigate }) {
         </li>
       ))}
     </ul>
-  )
-}
-
-function ThemeToggle() {
-  const { theme, toggle } = useTheme()
-  const next = theme === 'dark' ? 'light' : 'dark'
-  return (
-    <button type="button" className="round-btn theme-toggle" onClick={toggle} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`}>
-      {theme === 'dark' ? <Sun /> : <Moon />}
-    </button>
   )
 }
 
@@ -71,7 +61,7 @@ export default function Nav({ onContact }) {
         </nav>
 
         <div className="nav__side nav__actions">
-          <ThemeToggle />
+          <ThemeSwitch />
           <button type="button" className="btn btn--outline btn--sm nav__cta" onClick={talk}>
             [ Let’s Talk ]
           </button>

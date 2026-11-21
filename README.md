@@ -155,6 +155,8 @@ npm run dev        # dev server at http://localhost:5173
         ├── Nav             # Fixed glass nav, scroll-spy, theme toggle, mobile menu
         ├── Hero            # "Ideas to Impact." over the 3D card ribbon
         ├── Story           # Pinned, scroll-driven 3D process (Discover → Launch)
+        ├── Team            # 3D ring of team portraits (lime duotone), drag / click / auto-advance
+        ├── ThemeSwitch     # Liquid-glass light/dark switch (magnifying lens)
         ├── Marquee         # Two crossing bands that speed up with scroll
         ├── Words.jsx       # Word-by-word heading reveal
         ├── CountUp.jsx     # Stats that count up on first view
@@ -183,6 +185,7 @@ Most copy lives right next to the component that renders it, in a constant at th
 | Light-strand pose per section | `STRAND_SHAPES` in `src/three/strands.js` |
 | Which particle shape sits where | `PARTICLE_SECTIONS` in `src/three/StrandsBackground.jsx` |
 | Logo artwork | `src/brand/logo.js` (component: `src/components/Logo.jsx`) |
+| Team members | add a photo `public/team/name_email.jpeg`, then list it in `TEAM_FILES` in `src/content.js` |
 | Marquee words | `LIME` / `GLASS` in `src/components/Marquee.jsx` |
 | Principle quotes and toolkit | `PRINCIPLES` and `TOOLKIT` in `src/components/Principles.jsx` |
 | About-section stats | `STATS` in `src/components/About.jsx` |

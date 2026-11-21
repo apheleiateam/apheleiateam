@@ -10,14 +10,15 @@ import { seeded } from './utils.js'
     1 logo    the Apheleia "A", sampled from the vector mark          → About
     2 helix   a DNA double helix, building blocks                     → Services
     3 wave    a rolling particle terrain                               → Work
-    4 vortex  a black-hole accretion swirl                             → Principles
-    5 ring    a glowing portal ring                                    → Contact
+    4 galaxy  a disk with a bright core, orbiting the team ring        → Team
+    5 vortex  a black-hole accretion swirl                             → Principles
+    6 ring    a glowing portal ring                                    → Contact
 
   Each shape gets its own transform (uXf: x, y, z, scale) so it can sit on a
   layout anchor and scroll with its section. Rendered into the bloom target.
 */
 
-export const SHAPE_COUNT = 6
+export const SHAPE_COUNT = 7
 
 /* ---------- shape generators (local units) ---------- */
 
@@ -104,6 +105,29 @@ function wave(n, rnd) {
   return out
 }
 
+function galaxy(n, rnd) {
+  const out = new Float32Array(n * 3)
+  const gauss = () => (rnd() + rnd() + rnd() - 1.5) / 1.5
+  for (let i = 0; i < n; i++) {
+    const a = rnd() * Math.PI * 2
+    const kind = rnd()
+    let r
+    let y
+    if (kind < 0.14) {
+      r = Math.abs(gauss()) * 0.45 // bright core
+      y = gauss() * 0.18
+    } else if (kind < 0.8) {
+      r = 2.15 + gauss() * 0.16 // dense orbit
+      y = gauss() * 0.05
+    } else {
+      r = 1.2 + rnd() * 1.9 // sparse disk
+      y = gauss() * 0.08
+    }
+    out.set([Math.cos(a) * r, y, Math.sin(a) * r], i * 3)
+  }
+  return out
+}
+
 function vortex(n, rnd) {
   const out = new Float32Array(n * 3)
   for (let i = 0; i < n; i++) {
@@ -143,9 +167,9 @@ const vert = /* glsl */ `
   uniform float uAlpha;
   uniform float uPixelRatio;
   uniform float uSize;
-  uniform vec4 uXf[6];
-  uniform mat3 uTilt[6];
-  uniform float uSpin[6];
+  uniform vec4 uXf[7];
+  uniform mat3 uTilt[7];
+  uniform float uSpin[7];
   uniform vec3 uColA;
   uniform vec3 uColB;
   uniform vec3 uColC;
@@ -155,6 +179,7 @@ const vert = /* glsl */ `
   attribute vec3 aP3;
   attribute vec3 aP4;
   attribute vec3 aP5;
+  attribute vec3 aP6;
   attribute vec4 aRnd;
   varying vec3 vCol;
   varying float vA;
@@ -165,7 +190,8 @@ const vert = /* glsl */ `
     if (k == 2) return aP2;
     if (k == 3) return aP3;
     if (k == 4) return aP4;
-    return aP5;
+    if (k == 5) return aP5;
+    return aP6;
   }
   vec3 rotY(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(c * p.x + s * p.z, p.y, -s * p.x + c * p.z); }
   vec3 rotX(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(p.x, c * p.y - s * p.z, s * p.y + c * p.z); }
@@ -174,8 +200,9 @@ const vert = /* glsl */ `
     if (k == 1) return p + 0.012 * vec3(sin(uTime * 1.3 + aRnd.y * 20.0), cos(uTime * 1.1 + aRnd.z * 20.0), 0.0);
     if (k == 2) return rotX(p, uTime * 0.6);
     if (k == 3) { p.y += 0.2 * sin(p.x * 1.3 + uTime * 1.1) * cos(p.z * 1.6 - uTime * 0.6); return p; }
-    if (k == 4) { float r = length(p.xz); return rotY(p, uTime * 0.9 / (r + 0.3)); }
-    if (k == 5) {
+    if (k == 4) { float r = length(p.xz); return rotY(p, uTime * (0.12 + 0.35 / (r + 0.6))); }
+    if (k == 5) { float r = length(p.xz); return rotY(p, uTime * 0.9 / (r + 0.3)); }
+    if (k == 6) {
       float a = atan(p.z, p.x) + uTime * 0.18;
       float r = length(p.xz) * (1.0 + 0.03 * sin(a * 6.0 + uTime * 2.0));
       return vec3(cos(a) * r, p.y + 0.04 * sin(a * 9.0 + uTime * 3.0), sin(a) * r);
@@ -191,9 +218,9 @@ const vert = /* glsl */ `
   }
 
   void main() {
-    float m = clamp(uMorph, 0.0, 5.0);
+    float m = clamp(uMorph, 0.0, 6.0);
     int a = int(floor(m));
-    int b = a < 5 ? a + 1 : 5;
+    int b = a < 6 ? a + 1 : 6;
     float f = m - float(a);
     float fs = smoothstep(aRnd.x * 0.4, aRnd.x * 0.4 + 0.6, f);
     vec3 p = mix(place(a), place(b), fs);
@@ -252,7 +279,7 @@ const starFrag = /* glsl */ `
 
 export function createParticleUniverse({ count = 20000, stars = 900, seed = 5 } = {}) {
   const rnd = seeded(seed)
-  const shapes = [cloud(count, rnd), sampleLogo(count, rnd), helix(count, rnd), wave(count, rnd), vortex(count, rnd), ring(count, rnd)]
+  const shapes = [cloud(count, rnd), sampleLogo(count, rnd), helix(count, rnd), wave(count, rnd), galaxy(count, rnd), vortex(count, rnd), ring(count, rnd)]
   const aRnd = new Float32Array(count * 4)
   for (let i = 0; i < count * 4; i++) aRnd[i] = rnd()
 
@@ -278,7 +305,7 @@ export function createParticleUniverse({ count = 20000, stars = 900, seed = 5 } 
   }
   // fixed tilts so each shape reads in 3D
   const tilt = (x, z = 0) => new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(x, 0, z)))
-  uniforms.uTilt.value = [tilt(0), tilt(0), tilt(0.38, -0.04), tilt(0.35, 0.04), tilt(1.1, 0.12), tilt(1.28, -0.06)]
+  uniforms.uTilt.value = [tilt(0), tilt(0), tilt(0.38, -0.04), tilt(0.35, 0.04), tilt(0.3, 0.08), tilt(1.1, 0.12), tilt(1.28, -0.06)]
 
   const mat = new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag, transparent: true, depthTest: false, depthWrite: false })
   const points = new THREE.Points(geom, mat)

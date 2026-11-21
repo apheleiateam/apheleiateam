@@ -449,6 +449,20 @@ img, svg { display: block; max-width: 100%; }
 }
 .btn--primary:hover { --lift: -2px; }
 
+/* ---------- Theme switch: new theme spreads from the switch ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  animation: theme-reveal 0.8s cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+@keyframes theme-reveal {
+  from { clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 0px)); }
+  to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0px)); }
+}
+
 /* ---------- Motion ---------- */
 .reveal { opacity: 0; }
 .reveal.is-visible { animation: reveal 0.9s var(--ease) var(--d, 0s) both; }

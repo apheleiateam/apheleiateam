@@ -10,6 +10,7 @@ import CTA from './components/CTA.jsx'
 import Footer from './components/Footer.jsx'
 import ContactDialog from './components/ContactDialog.jsx'
 import Marquee from './components/Marquee.jsx'
+import Team from './components/Team.jsx'
 import useReveal from './hooks/useReveal.js'
 import { useMagnetic } from './hooks/interactions.js'
 import { useTheme } from './theme.jsx'
@@ -69,6 +70,7 @@ export default function App() {
         <About />
         <Services onContact={openContact} />
         <Work onContact={openContact} />
+        <Team />
         <Principles onContact={openContact} />
         <CTA onContact={openContact} />
       </main>

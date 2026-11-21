@@ -16,7 +16,7 @@ import { useReducedMotion } from './utils.js'
   Everything renders into one HDR target → bloom chain → composite.
 */
 
-const STRAND_ORDER = ['home', 'process', 'about', 'services', 'work', 'principles', 'contact']
+const STRAND_ORDER = ['home', 'process', 'about', 'services', 'work', 'team', 'principles', 'contact']
 
 // One particle shape per section; `anchor` is the element the shape sits on.
 const PARTICLE_SECTIONS = [
@@ -25,6 +25,7 @@ const PARTICLE_SECTIONS = [
   // on portrait screens the cards stack, so the helix stands upright along them
   { id: 'services', anchor: '.services', fit: 'w', nominal: 6, factor: 1.08, portrait: { fit: 'h', nominal: 6, factor: 1.0, rotZ: Math.PI / 2 } },
   { id: 'work', anchor: '.work', fit: 'w', nominal: 8, factor: 1.25, dy: 0.45 },
+  { id: 'team', anchor: '.team__stage', fit: 'w', nominal: 5.2, factor: 0.95, portrait: { fit: 'w', nominal: 5.2, factor: 1.25 } },
   { id: 'principles', anchor: '.quote', fit: 'h', nominal: 5.8, factor: 2.1 },
   { id: 'contact', anchor: '.cta', fit: 'w', nominal: 4.6, factor: 1.02 },
 ]
