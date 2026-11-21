@@ -50,6 +50,11 @@ export default function Principles({ onContact }) {
           <button type="button" className="link-arrow" onClick={() => onContact()}>
             Work with us <ArrowRight />
           </button>
+          <ul className="toolkit" aria-label="Our toolkit">
+            {TOOLKIT.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
         </div>
 
         <div
@@ -85,13 +90,9 @@ export default function Principles({ onContact }) {
           </div>
         </div>
 
-        <div className="toolkit glass reveal" style={{ '--d': '.2s' }}>
-          <p className="toolkit__label">Our toolkit</p>
-          <ul>
-            {TOOLKIT.map((t) => (
-              <li key={t}>{t}</li>
-            ))}
-          </ul>
+        {/* A marble column with the eternal flame is drawn here by the background 3D layer */}
+        <div className="principles__stage reveal" style={{ '--d': '.2s' }} aria-hidden="true">
+          <span className="micro principles__caption">The flame stays lit</span>
         </div>
       </div>
     </section>

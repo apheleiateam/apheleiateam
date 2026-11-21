@@ -5,6 +5,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import Env from './Env.jsx'
 import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
+import { loadModel, normalize, restyle } from './models.js'
 import { PALETTES } from './palette.js'
 import { TOP_D, TOP_W, makeBoardTexture, makeCardTexture, makeShadowTexture } from './textures.js'
 import { easeOutBack, easeOutCubic, range, seeded, smooth, useInView } from './utils.js'
@@ -363,6 +364,95 @@ function Floor({ shared, palette }) {
   )
 }
 
+/* ---------- 004 the starship: hovers over the finished board, then launches ---------- */
+const plumeVert = /* glsl */ `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+`
+const plumeFrag = /* glsl */ `
+  uniform float uPower;
+  uniform float uTime;
+  uniform vec3 uColor;
+  varying vec2 vUv;
+  void main() {
+    float along = vUv.y;                       // 1 at the nozzle, 0 at the tip
+    float flicker = 0.85 + 0.15 * sin(uTime * 40.0 + along * 20.0);
+    float a = pow(along, 1.6) * uPower * flicker;
+    vec3 col = mix(uColor, vec3(1.0, 1.0, 0.92), pow(along, 6.0));
+    gl_FragColor = vec4(col * a, a);
+  }
+`
+
+function Starship({ shared }) {
+  const group = useRef()
+  const pivot = useRef()
+  const [ship, setShip] = useState(null)
+  const plume = useMemo(() => {
+    const geom = new THREE.ConeGeometry(0.16, 1, 20, 1, true).rotateX(-Math.PI / 2).translate(0, 0, -0.5)
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: plumeVert,
+      fragmentShader: plumeFrag,
+      uniforms: { uPower: { value: 0 }, uTime: { value: 0 }, uColor: { value: new THREE.Color('#bcfa03') } },
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    })
+    return { geom, mat }
+  }, [])
+  const glow = useMemo(() => new THREE.PointLight('#bcfa03', 0, 5, 1.5), [])
+
+  useEffect(() => {
+    let live = true
+    loadModel('/models/starship.glb')
+      .then((gltf) => {
+        if (!live) return
+        const scene = gltf.scene.clone(true)
+        restyle(scene, {
+          White: { color: '#eef4ec', roughness: 0.28, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.12 },
+          Black: { color: '#0c140e', emissive: '#bcfa03', emissiveIntensity: 1.3, roughness: 0.4 },
+        })
+        setShip(normalize(scene, 1.7))
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+
+  useFrame(() => {
+    const g = group.current
+    if (!g) return
+    const { p, t } = shared
+    const appear = smooth(p, 0.62, 0.74)
+    const launch = range(p, 0.8, 0.98)
+    const boost = launch * launch
+    g.visible = appear > 0.001 && launch < 0.995
+    // hover over the board, then climb away toward the far corner
+    g.position.set(
+      1.1 - boost * 2.2,
+      THREE.MathUtils.lerp(4.5, 1.25, easeOutCubic(appear)) + Math.sin(t * 1.6) * 0.05 * (1 - launch) + boost * 7,
+      -0.2 - boost * 4,
+    )
+    // the model's nose is +z: pitch it up (local X), then yaw it toward where it flies
+    pivot.current.rotation.set(-0.12 - launch * 0.95, -2.6, Math.sin(t * 1.2) * 0.04 * (1 - launch), 'YXZ')
+    const power = 0.25 * appear + 1.6 * smooth(p, 0.78, 0.86)
+    plume.mat.uniforms.uPower.value = power
+    plume.mat.uniforms.uTime.value = t
+    glow.intensity = power * 2.2
+  })
+
+  return (
+    <group ref={group} visible={false}>
+      <group ref={pivot}>
+        {ship && <primitive object={ship} />}
+        <mesh geometry={plume.geom} material={plume.mat} position={[0, 0.02, -0.82]} scale={[1, 1, 1.6]} />
+        <primitive object={glow} position={[0, 0, -1]} />
+      </group>
+    </group>
+  )
+}
+
 /* ---------- DOM dimension labels pinned to world points ---------- */
 function DimLabels({ shared, labels }) {
   const v = useMemo(() => new THREE.Vector3(), [])
@@ -430,6 +520,7 @@ function Scene({ theme, progress, labels }) {
       <Scaffold shared={shared} palette={palette} />
       <Cards shared={shared} palette={palette} cardTexes={textures.cards} />
       <Pulse shared={shared} palette={palette} />
+      <Starship shared={shared} />
       <DimLabels shared={shared} labels={labels} />
     </>
   )

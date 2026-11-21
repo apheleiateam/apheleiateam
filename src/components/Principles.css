@@ -80,27 +80,48 @@
   border-color: var(--accent-bright);
 }
 
-.toolkit { padding: 28px 30px; border-radius: 28px; }
-.toolkit__label {
-  margin-bottom: 20px;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+/* toolkit as small chips under the intro */
+.toolkit { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.toolkit li {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* stage for the 3D column + flame (rendered behind, in the background canvas) */
+.principles__stage {
+  position: relative;
+  align-self: stretch;
+  min-height: 420px;
+}
+.principles__stage::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: 70%;
+  height: 34px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--accent-rgb) / 0.35), transparent);
+  filter: blur(6px);
+}
+.principles__caption {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 100%;
+  white-space: nowrap;
   color: var(--text-dim);
 }
-.toolkit ul { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 28px; }
-.toolkit li {
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--text-muted);
-  transition: color 0.25s;
-}
-.toolkit li:hover { color: var(--text); }
 
 @media (max-width: 1000px) {
   .principles { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
   .principles > .split__intro { grid-column: 1 / -1; }
+  .principles__stage { min-height: 360px; }
 }
 @media (max-width: 640px) {
   .principles { grid-template-columns: 1fr; }

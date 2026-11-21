@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { createBloom, createComposite } from './bloom.js'
 import { PALETTES } from './palette.js'
 import { createParticleUniverse } from './particles.js'
+import { createModelLayer } from './modelLayer.js'
 import { STRAND_SHAPES, createStrandField, dampShape, mixShape, pointer, pointerIn, tickPointer } from './strands.js'
 import { useReducedMotion } from './utils.js'
 
@@ -74,6 +75,7 @@ function Flow({ theme, reduced }) {
   }, [field, universe])
   const bloom = useMemo(() => createBloom(), [])
   const comp = useMemo(() => createComposite(bloom.textures), [bloom])
+  const models = useMemo(() => createModelLayer(gl, scene), [gl, scene])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const current = useMemo(() => ({ ...STRAND_SHAPES.home }), [])
   const target = useMemo(() => ({}), [])
@@ -87,16 +89,18 @@ function Flow({ theme, reduced }) {
       universe.dispose()
       bloom.dispose()
       comp.dispose()
+      models.dispose()
     },
-    [field, universe, bloom, comp],
+    [field, universe, bloom, comp, models],
   )
   useEffect(() => {
     field.setPalette(palette.strands)
     universe.setPalette(palette.particles)
+    models.setTheme(palette)
     comp.mat.uniforms.uBg.value.set(palette.bg)
     comp.mat.uniforms.uAdditive.value = palette.strands.additive ? 1 : 0
     comp.mat.uniforms.uW.value.set(...palette.strands.bloom)
-  }, [field, universe, comp, palette])
+  }, [field, universe, comp, models, palette])
   useEffect(() => {
     const dpr = gl.getPixelRatio()
     field.uniforms.uPixelRatio.value = dpr
@@ -153,9 +157,16 @@ function Flow({ theme, reduced }) {
       xf.set((r.left + r.width / 2 - size.width / 2) * k, -(r.top + r.height * (0.5 + (sec.dy || 0)) - size.height / 2) * k, 0, (span / sec.nominal) * sec.factor)
     })
 
+    models.update({ t, dt: d, k, w: size.width, h: size.height, reduced })
+
     bloom.render(gl, scene, camera)
     gl.setRenderTarget(null)
     gl.render(comp.scene, comp.cam)
+    // models on top, crisp (not bloomed)
+    gl.autoClear = false
+    gl.clearDepth()
+    gl.render(models.scene, camera)
+    gl.autoClear = true
   }, 1)
 
   return null
@@ -169,7 +180,8 @@ export default function StrandsBackground({ theme }) {
         dpr={[1, 1.25]}
         gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
-          gl.toneMapping = THREE.NoToneMapping
+          // only the lit 3D models use tone mapping; the shader layers ignore it
+          gl.toneMapping = THREE.NeutralToneMapping
         }}
       >
         <Flow theme={theme} reduced={reduced} />
