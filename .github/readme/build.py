@@ -530,7 +530,7 @@ def odometer(s, x, y, digits, size=46, lh=54, delay=0.0):
 def about():
     W, H = 1200, 620
     s = Svg(W, H, 'About Apheleia — a creative studio for what’s next. Apheleia (ἀφέλεια) is the Greek spirit of simplicity. '
-                  'Founded in Tamil Nadu, India in 2026: designers, engineers and strategists building digital products that '
+                  'Founded by seven friends in Tamil Nadu, India in 2026: designers, engineers and strategists building digital products that '
                   'feel effortless, and the systems that keep them that way at scale.')
     s.add(stars(40, (0, 0, W, H), 21))
     s.add(f'<ellipse cx="300" cy="320" rx="330" ry="300" fill="url(#glowd)" opacity=".7"/>')
@@ -568,12 +568,12 @@ def about():
     # copy
     s.add(s.pill(620, 92, 'About Apheleia'))
     s.add(s.heading(620, 186, ['A creative studio', 'for *what’s next.*'], size=52))
-    p, ph = s.para(620, 290, 'Apheleia — ἀφέλεια — is the Greek spirit of simplicity. Founded in Tamil Nadu, we’re designers, '
+    p, ph = s.para(620, 290, 'Apheleia — ἀφέλεια — is the Greek spirit of simplicity. Founded by seven friends in Tamil Nadu, we’re designers, '
                               'engineers and strategists building digital products that feel effortless, and the systems that '
                               'keep them that way at scale.', 500, size=17, lh=28)
     s.add(p)
     s.add(s.glass(620, 436, 520, 124, r=22))
-    for i, (val, label) in enumerate([('04', 'Core disciplines'), ('07', 'Minds, one mission'), ('2026', 'Founded in Tamil Nadu')]):
+    for i, (val, label) in enumerate([('07', 'Co-founders'), ('04', 'Core disciplines'), ('2026', 'Founded in Tamil Nadu')]):
         x = 646 + i * 170
         if i:
             s.add(f'<rect x="{x - 18}" y="458" width="1" height="80" fill="{MIST}" fill-opacity=".12"/>')
@@ -697,14 +697,14 @@ def services():
 
 def team_header(people):
     W, H = 1200, 330
-    s = Svg(W, H, 'The team — the minds behind Apheleia: ' + ', '.join(p[0] for p in people) + '.')
+    s = Svg(W, H, 'The team — the seven co-founders behind Apheleia: ' + ', '.join(p[0] for p in people) + '.')
     s.add(stars(50, (0, 0, W, H), 51))
     s.add(f'<ellipse cx="600" cy="330" rx="520" ry="170" fill="url(#glowd)" opacity=".9"/>')
     s.add(f'<ellipse cx="600" cy="330" rx="300" ry="70" fill="url(#glowl)" opacity=".22" class="breathe"/>')
     s.add(s.pill(600, 64, 'The Team', anchor='middle'))
     s.add(s.heading(600, 166, ['The minds behind *Apheleia.*'], size=58, anchor='middle'))
-    p, _ = s.para(600, 214, 'Designers, engineers and strategists from Tamil Nadu — one studio, one obsession: making '
-                             'complex things feel simple.', 640, size=17, lh=28, anchor='middle')
+    p, _ = s.para(600, 214, 'Seven co-founders from Tamil Nadu — designers, engineers and strategists with one obsession: '
+                             'making complex things feel simple.', 660, size=17, lh=28, anchor='middle')
     s.add(p)
     # avatar rail
     n = len(people)
@@ -741,7 +741,7 @@ def portrait(path, size=(540, 720)):
 
 def team_card(i, total, name, email, b64):
     w, h = 360, 480
-    s = Svg(w, h, f'{name} — {email}', rx=24)
+    s = Svg(w, h, f'{name}, co-founder — {email}', rx=24)
     s.style(f"""
 .kb{{animation:kb 14s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 30%}}
 @keyframes kb{{from{{transform:scale(1)}}to{{transform:scale(1.06)}}}}
@@ -765,7 +765,7 @@ def team_card(i, total, name, email, b64):
     s.add(f'<rect x="18" y="18" width="{cw_:.0f}" height="28" rx="14" fill="{BG}" fill-opacity=".6" stroke="#fff" stroke-opacity=".2"/>')
     s.add(s.micro(31, 36.5, chip, op=.95, fill=IVORY))
     s.add(f'<circle cx="{w - 34}" cy="32" r="16" fill="{BG}" fill-opacity=".7" stroke="#fff" stroke-opacity=".2"/>' + logo(w - 34 - 11, 23, 18))
-    s.add(f'<rect x="24" y="{h - 120}" width="28" height="3" rx="1.5" fill="{LIME}"/>')
+    s.add(f'<rect x="24" y="{h - 118}" width="22" height="3" rx="1.5" fill="{LIME}"/>' + s.micro(54, h - 113, 'Co-founder', op=.85, fill=IVORY))
     size = 38 if tw(name, 'q700', 38) < w - 48 else 31
     s.add(s.text(24, h - 66, name, 'q700', size, IVORY, ls=-.5))
     s.add(icon_path('mail', 24, h - 46, 17, LIME, 1.8) + s.text(48, h - 32, email, 'i600', 16, LIME, op=.95))
