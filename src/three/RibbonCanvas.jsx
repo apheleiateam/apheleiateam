@@ -7,6 +7,9 @@ import { debugPrograms, dprFor, noteRenderer, quality } from '../perf.js'
 import AdaptiveDpr from './AdaptiveDpr.jsx'
 import Env from './Env.jsx'
 import { afterFrames, precompile, precompileOffscreen } from './precompile.js'
+import SceneHealth from './SceneHealth.jsx'
+import Watchdog from './Watchdog.jsx'
+import { health } from '../health.js'
 import { splashActive, splashDone } from '../splash.js'
 import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
 import { PALETTES } from './palette.js'
@@ -218,8 +221,10 @@ function Warmup({ onDone }) {
     let live = true
     precompile(gl, scene, camera)
     afterFrames(8).then(() => live && onDone())
+    const fallback = setTimeout(() => live && onDone(), 1500) // never wait on frames that might not come
     return () => {
       live = false
+      clearTimeout(fallback)
     }
   }, [gl, scene, camera, onDone])
   return null
@@ -248,6 +253,8 @@ export default function RibbonCanvas({ theme, labels, labelCount, onReady }) {
     splashDone.then(() => setIntroGone(true))
   }, [])
   const warmed = useMemo(() => () => setWarm(true), [])
+  const running = visible && warm && (introGone || !shown)
+  health.hero.gate = { visible, warm, shown, introGone, running }
   const firstFrames = useMemo(
     () => () => {
       setShown(true)
@@ -260,7 +267,7 @@ export default function RibbonCanvas({ theme, labels, labelCount, onReady }) {
   return (
     <div ref={wrap} className="ribbon-canvas">
       <Canvas
-        frameloop={visible && warm && (introGone || !shown) ? 'always' : 'never'}
+        frameloop={running ? 'always' : 'never'}
         dpr={initialDpr}
         gl={{ antialias: quality.features === 'high', alpha: false, powerPreference: 'high-performance' }}
         camera={{ fov: 32, near: 0.1, far: 100, position: [0, 0.2, 12] }}
@@ -275,6 +282,8 @@ export default function RibbonCanvas({ theme, labels, labelCount, onReady }) {
         }}
       >
         <AdaptiveDpr />
+        <SceneHealth name="hero" />
+        <Watchdog name="hero" shouldRun={running} />
         <FirstFrames onReady={firstFrames} />
         <Framing bg={palette.bg} />
         <Env intensity={palette.env} />

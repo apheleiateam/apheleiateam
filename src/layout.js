@@ -18,6 +18,7 @@ let dirty = true
 let watching = false
 
 export const viewport = { x: 0, y: 0, w: 0, h: 0 }
+if (/[?&]debug=scenes/.test(location.search)) window.__viewport = viewport
 function readScroll() {
   viewport.x = window.scrollX
   viewport.y = window.scrollY
@@ -32,6 +33,12 @@ function readSize() {
 }
 readSize()
 addEventListener('scroll', readScroll, { passive: true, capture: true })
+// belt and braces: anything that can move the page without a scroll event in this
+// window (back/forward cache, hash jumps, tab return), plus a cheap periodic resync
+addEventListener('pageshow', readSize)
+addEventListener('hashchange', readScroll)
+document.addEventListener('visibilitychange', readScroll)
+setInterval(readScroll, 400)
 addEventListener('resize', () => {
   invalidateLayout()
   readSize()

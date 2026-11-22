@@ -1,5 +1,6 @@
 import './splash.js' // first: it owns the intro screen that covers loading
 import './sound.js' // liquid click sounds (one global listener)
+import './scrollRestore.js' // refresh keeps your place
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'

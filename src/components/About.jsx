@@ -4,8 +4,7 @@ import { ArrowRight } from './Icons.jsx'
 import './About.css'
 
 const STATS = [
-  { value: 7, pad: 2, label: 'Co-founders' },
-  { value: 4, pad: 2, label: 'Core disciplines' },
+  { value: 5, pad: 2, label: 'Core disciplines' },
   { value: 2026, from: 1990, label: 'Founded in Tamil Nadu' },
 ]
 
@@ -37,9 +36,9 @@ export default function About() {
             <Words start={3}>for what’s next.</Words>
           </h2>
           <p>
-            Apheleia — <em>ἀφέλεια</em> — is the Greek spirit of simplicity. Founded by seven friends in
-            Tamil Nadu, we’re designers, engineers and strategists building digital products that feel
-            effortless, and the systems that keep them that way at scale.
+            Apheleia is a creative technology studio from Tamil Nadu, India. We’re designers, engineers
+            and strategists building digital products that feel effortless — and the systems and
+            automations that keep them that way at scale.
           </p>
           <a href="#services" className="link-arrow">
             Learn More <ArrowRight />

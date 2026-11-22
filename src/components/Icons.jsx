@@ -76,6 +76,13 @@ export const IconCompass = (p) => (
     <path d="m15.5 8.5-2 5-5 2 2-5z" />
   </svg>
 )
+export const IconAutomation = (p) => (
+  <svg {...grad} {...p}>
+    <path d="M19.6 13.5a8 8 0 0 1-13.9 3.4M4.4 10.5a8 8 0 0 1 13.9-3.4" />
+    <path d="M18.6 3.6v3.8h-3.8M5.4 20.4v-3.8h3.8" />
+    <path d="M12.8 8.4 10.6 12h3l-2.2 3.6" />
+  </svg>
+)
 export const IconSearch = (p) => (
   <svg {...grad} {...p}><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></svg>
 )
@@ -91,16 +98,6 @@ export const IconRocket = (p) => (
 )
 
 /* socials */
-export const LinkedIn = (p) => (
-  <svg {...solid} {...p}>
-    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.1c0-1.22-.02-2.79-1.7-2.79-1.7 0-1.96 1.33-1.96 2.7V21h-4z" />
-  </svg>
-)
-export const XLogo = (p) => (
-  <svg {...solid} {...p}>
-    <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.78zm-1.08 16.2h1.7L7.4 4.73H5.58z" />
-  </svg>
-)
 export const Instagram = (p) => (
   <svg {...stroke} {...p}>
     <rect x="3" y="3" width="18" height="18" rx="5" />

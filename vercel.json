@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/contact.js": {
+      "includeFiles": "api/_lib/logo.png",
+      "maxDuration": 15
+    }
+  }
+}

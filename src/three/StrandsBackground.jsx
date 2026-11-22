@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { beat, drawing, health } from '../health.js'
 import { rectOf, viewport } from '../layout.js'
+import SceneHealth from './SceneHealth.jsx'
+import Watchdog from './Watchdog.jsx'
 import { debugPrograms, dprFor, noteRenderer, onQuality, quality } from '../perf.js'
 import { release, splashActive } from '../splash.js'
 import { createBloom, createComposite } from './bloom.js'
@@ -97,12 +100,13 @@ function Flow({ theme, reduced }) {
   const pv = useMemo(() => new THREE.Vector2(), [])
   const els = useRef({ strands: [], particles: [], anchors: [] })
   const morph = useRef(0)
+  const lastDraw = useRef(0)
 
   // quality changes: resolution, particle density (bloom passes are read per frame)
   useEffect(() => {
     const apply = () => {
       lite.current = quality.features !== 'high'
-      universe.setDensity(lite.current ? 0.5 : 1)
+      universe.setDensity(lite.current ? 0.7 : 1)
       setDpr(dprFor('bg', size.width, size.height))
     }
     apply()
@@ -116,7 +120,10 @@ function Flow({ theme, reduced }) {
   useEffect(() => {
     precompileOffscreen(gl, scene, camera)
     gl.compile(comp.scene, comp.cam)
-    afterFrames(6).then(() => (compiled.current = true))
+    const done = () => (compiled.current = true)
+    afterFrames(6).then(done)
+    const fallback = setTimeout(done, 1500) // never wait on frames that might not come
+    return () => clearTimeout(fallback)
   }, [gl, scene, camera, comp])
 
   // then build the 3D objects + compile their shaders in idle moments
@@ -163,12 +170,14 @@ function Flow({ theme, reduced }) {
 
   useFrame((state, dt) => {
     if (!compiled.current) return
-    // hero / pinned story are opaque canvases over this one: redraw at a third of the rate
+    // hero / pinned story are opaque canvases over this one: redraw at a third of the
+    // rate — but only while that canvas is really alive and drawing on top
     const [hero, story] = els.current.strands
     const vh = size.height
     const hr = hero && rectOf(hero)
     const sr = story && rectOf(story)
-    const covered = (hr && hr.top <= 1 && hr.bottom >= vh) || (sr && sr.top <= 0 && sr.bottom >= vh)
+    const covered =
+      (hr && hr.top <= 1 && hr.bottom >= vh && drawing('hero')) || (sr && sr.top <= 0 && sr.bottom >= vh && drawing('story'))
     if (covered && tick.current++ % 3 !== 0) return
     // hidden behind the intro: draw a few frames to warm up, then wait
     if (splashActive() && tick.current++ > 3) return
@@ -192,7 +201,14 @@ function Flow({ theme, reduced }) {
     /* particles: morph value + per-shape anchor transforms */
     const p = straddle(els.current.particles)
     const want = s.a === 0 && p.a === 0 && p.f === 0 ? 0 : p.a + p.f
-    morph.current += (want - morph.current) * Math.min(1, d * 3)
+    // (re)starting after a pause — first frame, behind the intro, back from another tab:
+    // jump straight to this section's shape instead of flying through the others
+    const now = performance.now()
+    if (now - lastDraw.current > 500) {
+      morph.current = want
+      dampShape(current, target, 1)
+    } else morph.current += (want - morph.current) * Math.min(1, d * 3)
+    lastDraw.current = now
     const u = universe.uniforms
     u.uMorph.value = morph.current
     u.uAlpha.value = Math.min(1, Math.max(0, (morph.current - 0.15) / 0.6))
@@ -219,12 +235,19 @@ function Flow({ theme, reduced }) {
     gl.clearDepth()
     gl.render(models.scene, camera)
     gl.autoClear = true
+    beat('bg')
+    health.bg.particles = u.uAlpha.value
+    health.bg.morph = morph.current
+    health.bg.want = want
     if (!shown.current) release('bg') // first frame is up: the intro may go
     shown.current = true
   }, 1)
 
   return null
 }
+
+// behind the intro the background deliberately pauses; otherwise it always draws
+const bgShouldDraw = () => !splashActive()
 
 export default function StrandsBackground({ theme }) {
   const reduced = useReducedMotion()
@@ -245,6 +268,8 @@ export default function StrandsBackground({ theme }) {
           gl.toneMapping = THREE.NeutralToneMapping
         }}
       >
+        <SceneHealth name="bg" beat={false} />
+        <Watchdog name="bg" shouldRun={bgShouldDraw} />
         <Flow theme={theme} reduced={reduced} />
       </Canvas>
     </div>

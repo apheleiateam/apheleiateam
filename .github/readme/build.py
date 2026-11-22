@@ -61,6 +61,8 @@ ICONS = {
     'upright': 'M7 17 17 7M8 7h9v9',
     'down': 'M12 5v14M6 13l6 6 6-6',
     'mail': 'M4 6h16v12H4zM4 7l8 6 8-6',
+    'automation': 'M19.6 13.5a8 8 0 0 1-13.9 3.4M4.4 10.5a8 8 0 0 1 13.9-3.4M18.6 3.6v3.8h-3.8M5.4 20.4v-3.8h3.8M12.8 8.4 10.6 12h3l-2.2 3.6',
+    'instagram': 'M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3zM12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM17.2 6.6v.01',
 }
 
 # ---- fonts ------------------------------------------------------------------
@@ -529,9 +531,9 @@ def odometer(s, x, y, digits, size=46, lh=54, delay=0.0):
 
 def about():
     W, H = 1200, 620
-    s = Svg(W, H, 'About Apheleia — a creative studio for what’s next. Apheleia (ἀφέλεια) is the Greek spirit of simplicity. '
-                  'Founded by seven friends in Tamil Nadu, India in 2026: designers, engineers and strategists building digital products that '
-                  'feel effortless, and the systems that keep them that way at scale.')
+    s = Svg(W, H, 'About Apheleia — a creative studio for what’s next. A creative technology studio from Tamil Nadu, India: '
+                  'designers, engineers and strategists building digital products that feel effortless — and the systems and '
+                  'automations that keep them that way at scale.')
     s.add(stars(40, (0, 0, W, H), 21))
     s.add(f'<ellipse cx="300" cy="320" rx="330" ry="300" fill="url(#glowd)" opacity=".7"/>')
     # stage
@@ -539,7 +541,6 @@ def about():
     sc = s.uid('st')
     s.defs.append(f'<clipPath id="{sc}"><rect x="60" y="60" width="480" height="500" rx="26"/></clipPath>')
     s.add(s.micro(88, 100, 'The mark'))
-    s.add(s.text(512, 538, 'ἀφέλεια', 'i500', 14, MIST, op=.5, anchor='end', ls=1))
     for (x, y, dx, dy) in [(84, 120, 1, 1), (516, 500, -1, -1)]:
         s.add(f'<path d="M{x} {y + 22 * dy}V{y}H{x + 22 * dx}" fill="none" stroke="{LIME}" stroke-opacity=".6" stroke-width="1.5"/>')
     s.add(f'<g clip-path="url(#{sc})">'
@@ -568,13 +569,13 @@ def about():
     # copy
     s.add(s.pill(620, 92, 'About Apheleia'))
     s.add(s.heading(620, 186, ['A creative studio', 'for *what’s next.*'], size=52))
-    p, ph = s.para(620, 290, 'Apheleia — ἀφέλεια — is the Greek spirit of simplicity. Founded by seven friends in Tamil Nadu, we’re designers, '
-                              'engineers and strategists building digital products that feel effortless, and the systems that '
-                              'keep them that way at scale.', 500, size=17, lh=28)
+    p, ph = s.para(620, 290, 'Apheleia is a creative technology studio from Tamil Nadu, India. We’re designers, engineers and '
+                              'strategists building digital products that feel effortless — and the systems and automations '
+                              'that keep them that way at scale.', 500, size=17, lh=28)
     s.add(p)
     s.add(s.glass(620, 436, 520, 124, r=22))
-    for i, (val, label) in enumerate([('07', 'Co-founders'), ('04', 'Core disciplines'), ('2026', 'Founded in Tamil Nadu')]):
-        x = 646 + i * 170
+    for i, (val, label) in enumerate([('05', 'Core disciplines'), ('2026', 'Founded in Tamil Nadu')]):
+        x = 666 + i * 250
         if i:
             s.add(f'<rect x="{x - 18}" y="458" width="1" height="80" fill="{MIST}" fill-opacity=".12"/>')
         s.add(odometer(s, x, 508, val, delay=i * .25))
@@ -635,9 +636,9 @@ def process():
 
 
 def services():
-    W, H = 1200, 640
+    W, H = 1200, 800
     s = Svg(W, H, 'Our services — end-to-end solutions for your digital journey. UI/UX Design, Web & App Development, '
-                  'System Architecture, Brand & Strategy.')
+                  'System Architecture, Automation, Brand & Strategy.')
     s.style("""
 .hx{animation:hx 7s ease-in-out infinite;animation-delay:var(--d)}
 @keyframes hx{0%,100%{transform:translateY(-120px)}50%{transform:translateY(120px)}}
@@ -648,7 +649,7 @@ def services():
 """)
     s.add(stars(40, (0, 0, W, H), 41))
     # DNA helix weaving behind the cards
-    cy = 320
+    cy = H // 2
     helix = ['<g>']
     for i in range(64):
         x = -10 + i * 19.5
@@ -673,11 +674,12 @@ def services():
         ('design', 'UI/UX Design', 'Intuitive interfaces and design systems that make complex things feel simple.'),
         ('code', 'Web & App Development', 'Fast, scalable and secure products built on modern stacks.'),
         ('nodes', 'System Architecture', 'Resilient backends, clean APIs and infrastructure that grows with you.'),
+        ('automation', 'Automation', 'Workflows, integrations and AI agents that cut out repetitive work.'),
         ('compass', 'Brand & Strategy', 'Positioning, voice and identity grounded in purpose.'),
     ]
     for i, (ic, title, body) in enumerate(cards):
-        x, y = 470 + (i % 2) * 345, 60 + (i // 2) * 270
-        w, h = 325, 250
+        x, y = 470 + (i % 2) * 345, 36 + (i // 2) * 250
+        w, h = (670 if i == 4 else 325), 232
         cid = s.uid('sc')
         s.defs.append(f'<clipPath id="{cid}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/></clipPath>')
         s.add(s.glass(x, y, w, h, r=22, tint=.72))
@@ -688,8 +690,8 @@ def services():
         s.add(f'<rect x="{x + 24}" y="{y + 24}" width="52" height="52" rx="15" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".14"/>')
         s.add(icon_path(ic, x + 34, y + 34, 32))
         s.add(s.micro(x + w - 24, y + 48, f'0{i + 1}', anchor='end', op=.4))
-        s.add(s.text(x + 24, y + 118, title, 'q700', 22, IVORY))
-        p, _ = s.para(x + 24, y + 148, body, w - 48, size=15, lh=23, op=.7)
+        s.add(s.text(x + 24, y + 112, title, 'q700', 22, IVORY))
+        p, _ = s.para(x + 24, y + 140, body, w - 48, size=15, lh=22, op=.7)
         s.add(p)
         s.add(s.text(x + 24, y + h - 26, 'Learn more', 'i600', 14, LIME) + icon_path('right', x + 24 + tw('Learn more', 'i600', 14) + 6, y + h - 38, 15, LIME, 2))
     s.save('services.svg')
@@ -697,7 +699,7 @@ def services():
 
 def team_header(people):
     W, H = 1200, 330
-    s = Svg(W, H, 'The team — the seven co-founders behind Apheleia: ' + ', '.join(p[0] for p in people) + '.')
+    s = Svg(W, H, 'The team — the people behind Apheleia: ' + ', '.join(p[0] for p in people) + '.')
     s.add(stars(50, (0, 0, W, H), 51))
     s.add(f'<ellipse cx="600" cy="330" rx="520" ry="170" fill="url(#glowd)" opacity=".9"/>')
     s.add(f'<ellipse cx="600" cy="330" rx="300" ry="70" fill="url(#glowl)" opacity=".22" class="breathe"/>')
@@ -975,7 +977,8 @@ def cta():
 
 def footer():
     W, H = 1200, 360
-    s = Svg(W, H, 'Apheleia — © 2026 Apheleia. All rights reserved. Made with care in Tamil Nadu, India. hello@apheleia.com')
+    s = Svg(W, H, 'Apheleia — © 2026 Apheleia. All rights reserved. Made with care in Tamil Nadu, India. '
+                  'apheleia.team@gmail.com · Instagram @apheleia.team')
     s.style("""
 .mark{animation:mark 9s ease-in-out infinite}
 @keyframes mark{0%,100%{opacity:.75}50%{opacity:1}}
@@ -988,11 +991,14 @@ def footer():
     for l in links:
         s.add(s.text(x, 90, l, 'i500', 15, MIST, op=.72))
         x += tw(l, 'i500', 15) + 30
-    s.add(icon_path('mail', 1128 - tw('hello@apheleia.com', 'i500', 15) - 26, 77, 16, LIME, 1.8)
-          + s.text(1128, 90, 'hello@apheleia.com', 'i500', 15, IVORY, anchor='end'))
+    s.add(icon_path('mail', 1128 - tw('apheleia.team@gmail.com', 'i500', 15) - 26, 77, 16, LIME, 1.8)
+          + s.text(1128, 90, 'apheleia.team@gmail.com', 'i500', 15, IVORY, anchor='end'))
     s.add(f'<rect x="72" y="122" width="{W - 144}" height="1" fill="#fff" fill-opacity=".1"/>')
     s.add(s.text(72, 158, '© 2026 Apheleia. All rights reserved.', 'i400', 13.5, MIST, op=.55))
     s.add(s.text(W - 72, 158, 'Made with care in Tamil Nadu, India', 'i400', 13.5, MIST, op=.55, anchor='end'))
+    ig = '@apheleia.team'
+    igx = W / 2 - (tw(ig, 'i500', 13.5) + 22) / 2
+    s.add(icon_path('instagram', igx, 145, 16, LIME, 1.8) + s.text(igx + 22, 158, ig, 'i500', 13.5, MIST, op=.8))
     big = 'Apheleia'
     size = 290
     bw = tw(big, 'q700', size, -8)

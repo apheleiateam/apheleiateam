@@ -1,4 +1,4 @@
-import { ArrowRight, IconCode, IconCompass, IconDesign, IconNodes } from './Icons.jsx'
+import { ArrowRight, IconAutomation, IconCode, IconCompass, IconDesign, IconNodes } from './Icons.jsx'
 import Words from './Words.jsx'
 import { tilt } from '../hooks/interactions.js'
 import './Services.css'
@@ -21,6 +21,12 @@ const SERVICES = [
     title: 'System Architecture',
     body: 'Resilient backends, clean APIs and infrastructure that grows with you.',
     topic: 'System Architecture',
+  },
+  {
+    Icon: IconAutomation,
+    title: 'Automation',
+    body: 'Workflows, integrations and AI agents that cut out repetitive work.',
+    topic: 'Automation',
   },
   {
     Icon: IconCompass,

@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from '../theme.jsx'
 import { useQuality } from '../perf.js'
 import { afterIntroBeat, hold, release } from '../splash.js'
-import CanvasBoundary from './CanvasBoundary.jsx'
+import SceneGuard from './SceneGuard.jsx'
 import { hasWebGL, seeded } from '../three/utils.js'
 import { ArrowDown, ArrowRight } from './Icons.jsx'
 import './Hero.css'
@@ -35,11 +35,11 @@ export default function Hero({ onContact }) {
     <section className="hero" id="home">
       <div className="hero__stage" aria-hidden="true">
         {webgl && mount && (
-          <CanvasBoundary>
+          <SceneGuard name="hero">
             <Suspense fallback={null}>
               <RibbonCanvas theme={theme} labels={labels} labelCount={LABELS} onReady={heroReady} />
             </Suspense>
-          </CanvasBoundary>
+          </SceneGuard>
         )}
         <div className="hero__labels">
           {numbers.map((n, i) => (

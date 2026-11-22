@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:scenes": "vite build && node scripts/check-scenes.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^8.18.0",
+    "nodemailer": "^6.9.16",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.170.0"

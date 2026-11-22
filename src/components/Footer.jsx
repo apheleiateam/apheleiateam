@@ -1,5 +1,5 @@
-import { EMAIL, NAV_LINKS, SOCIALS } from '../content.js'
-import { Instagram, LinkedIn, XLogo } from './Icons.jsx'
+import { EMAIL, INSTAGRAM, NAV_LINKS } from '../content.js'
+import { Instagram } from './Icons.jsx'
 import Logo from './Logo.jsx'
 import './Footer.css'
 
@@ -23,9 +23,10 @@ export default function Footer() {
             </ul>
           </nav>
           <div className="socials">
-            <a href={SOCIALS.linkedin} aria-label="Apheleia on LinkedIn"><LinkedIn /></a>
-            <a href={SOCIALS.x} aria-label="Apheleia on X"><XLogo /></a>
-            <a href={SOCIALS.instagram} aria-label="Apheleia on Instagram"><Instagram /></a>
+            <a className="socials__ig" href={INSTAGRAM.url} target="_blank" rel="noopener noreferrer" aria-label={`Apheleia on Instagram, ${INSTAGRAM.handle}`}>
+              <Instagram />
+              <span>{INSTAGRAM.handle}</span>
+            </a>
           </div>
         </div>
 

@@ -7,6 +7,8 @@ import { debugPrograms, dprFor, noteRenderer, quality } from '../perf.js'
 import AdaptiveDpr from './AdaptiveDpr.jsx'
 import Env from './Env.jsx'
 import { precompile } from './precompile.js'
+import SceneHealth from './SceneHealth.jsx'
+import Watchdog from './Watchdog.jsx'
 import { applyFlamePalette, makeFlameMaterial, makeGlass } from './glow.js'
 import { loadModel, normalize, restyle } from './models.js'
 import { PALETTES } from './palette.js'
@@ -620,6 +622,8 @@ export default function StoryCanvas({ theme, progress, labels, onReady }) {
         }}
       >
         <AdaptiveDpr />
+        <SceneHealth name="story" />
+        <Watchdog name="story" shouldRun={visible} />
         <Scene theme={theme} progress={progress} labels={labels} onReady={onReady} />
       </Canvas>
     </div>

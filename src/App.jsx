@@ -15,8 +15,9 @@ import useReveal from './hooks/useReveal.js'
 import { useMagnetic } from './hooks/interactions.js'
 import { useTheme } from './theme.jsx'
 import { useQuality } from './perf.js'
+import { restoreScroll } from './scrollRestore.js'
 import { afterIntroBeat, hold, splashActive } from './splash.js'
-import CanvasBoundary from './components/CanvasBoundary.jsx'
+import SceneGuard from './components/SceneGuard.jsx'
 import { hasWebGL, whenIdle } from './three/utils.js'
 
 const StrandsBackground = lazy(() => import('./three/StrandsBackground.jsx'))
@@ -57,11 +58,11 @@ function Background() {
   if (live)
     return (
       bgReady && (
-        <CanvasBoundary>
+        <SceneGuard name="bg">
           <Suspense fallback={null}>
             <StrandsBackground theme={theme} />
           </Suspense>
-        </CanvasBoundary>
+        </SceneGuard>
       )
     )
   return (
@@ -100,6 +101,7 @@ export default function App() {
   }, [])
   const closeContact = useCallback(() => setContact((c) => ({ ...c, open: false })), [])
 
+  useEffect(restoreScroll, []) // after the first render: the page is tall enough now
   useReveal()
   useMagnetic()
 

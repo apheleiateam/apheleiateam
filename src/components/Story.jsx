@@ -3,7 +3,7 @@ import { useTheme } from '../theme.jsx'
 import { rectOf, viewport } from '../layout.js'
 import { useQuality } from '../perf.js'
 import { afterIntroBeat, hold, release, splashActive } from '../splash.js'
-import CanvasBoundary from './CanvasBoundary.jsx'
+import SceneGuard from './SceneGuard.jsx'
 import { hasWebGL, whenIdle } from '../three/utils.js'
 import { ArrowDown } from './Icons.jsx'
 import './Story.css'
@@ -91,11 +91,11 @@ export default function Story() {
     <section className="story" id="process" ref={section} aria-label="Our process">
       <div className="story__sticky">
         {webgl && mount && (
-          <CanvasBoundary>
+          <SceneGuard name="story">
           <Suspense fallback={null}>
             <StoryCanvas theme={theme} progress={progress} labels={labels} onReady={storyReady} />
           </Suspense>
-          </CanvasBoundary>
+          </SceneGuard>
         )}
         <div className="story__light" aria-hidden="true" />
         <div className="story__labels" aria-hidden="true">

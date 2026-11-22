@@ -47,6 +47,7 @@
 }
 .socials a:hover { color: var(--text); border-color: var(--accent-bright); background: rgb(var(--accent-rgb) / 0.14); }
 .socials svg { width: 16px; height: 16px; }
+.socials a.socials__ig { display: inline-flex; gap: 8px; width: auto; padding: 0 14px 0 11px; border-radius: 999px; font-size: 0.8rem; font-weight: 500; }
 
 .footer__bottom {
   display: flex;

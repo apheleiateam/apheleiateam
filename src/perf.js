@@ -2,26 +2,39 @@ import { useEffect, useState } from 'react'
 import { splashDone } from './splash.js'
 
 /*
-  Quality manager — keeps the page smooth on every device.
+  Quality: WHAT each device draws, and HOW SHARP.
 
-  1. A starting level is picked from device hints (cores, memory, GPU name,
-     touch screen, data-saver). `?perf=high|low|static` forces one for testing.
-  2. A frame-time monitor then watches real frames. When the page keeps missing
-     its refresh rate it steps quality DOWN (never back up, so nothing flickers):
+  The trade-off, and the rule that comes out of it
+  ------------------------------------------------
+  lever                  saves                 visible?               safe to change mid-visit?
+  render resolution      GPU fill (biggest)    barely (glowing art)   yes: cheap, reversible
+  bloom blur passes      GPU                   subtle                 —  (fixed per tier)
+  particle count         GPU                   yes                    no
+  glass refraction       a 2nd scene render    yes, look changes      no: shader recompile stall
+  CSS backdrop blur      compositor            yes                    no
+  dropping the 3D        everything            CONTENT DISAPPEARS     never
 
-       level 0  high    full effects
-       level 1  high    · lower render resolution
-       level 2  low     · no glass refraction, lighter bloom, fewer particles,
-                          no CSS backdrop blur
-       level 3  low     · lower resolution again
-       level 4  static  · no WebGL at all — plain HTML/CSS, like a static site
+  An earlier version stepped down through ALL of these while you browsed, judged
+  by frame times. Any busy moment, or Chrome's 30 fps battery-saver cap, read as
+  "slow device" and the particles / hero animation switched off. So now:
 
-  `features` ('high' | 'low' | 'static') is mirrored on <html data-perf>, so CSS
-  can drop expensive effects too.
+  1. WHAT is drawn (`features`) is chosen once, from what the device can do, and
+     frozen when the intro lifts. It never changes in front of the visitor.
+       high    desktop / laptop GPUs: everything
+       low     phones, tablets, low-memory devices, known-weak GPUs: glass without
+               refraction, lighter bloom, 70% particles, no CSS backdrop blur
+       static  no WebGL, Data Saver, or a software renderer: plain HTML/CSS
+  2. Only HOW SHARP (render resolution, 100% → 85% → 70%) adapts while browsing,
+     and it steps back up once frames are smooth again.
+  3. "Janky" means frames arriving late compared with the browser's own cadence,
+     so a 30 fps cap (battery saver) or a 120 Hz screen is not mistaken for jank.
+
+  `?perf=high|low|static` forces a tier (and disables adaptation) for testing.
+  `features` is mirrored on <html data-perf> so CSS can match.
 */
 
-const FEATURES = ['high', 'high', 'low', 'low', 'static']
-const DPR_SCALE = [1, 0.75, 1, 0.75, 0]
+const forced = new URLSearchParams(location.search).get('perf')
+const SCALES = [1, 0.85, 0.7]
 
 // Max device-pixel-ratio and pixel budget per canvas kind and feature tier.
 // The background is all glow, so it tolerates (and hides) low resolution well.
@@ -29,31 +42,63 @@ const CAP = { bg: { high: 1.25, low: 1 }, scene: { high: 1.75, low: 1.25 } }
 const BUDGET = { bg: { high: 2.4e6, low: 0.75e6 }, scene: { high: 3.4e6, low: 1.2e6 } }
 const FLOOR = { bg: 0.5, scene: 0.75 }
 
+const state = { features: 'high', dprScale: 1 }
+const subs = new Set()
+let locked = false // once the intro lifts, what is drawn never changes
 let gpuName = ''
-const forced = new URLSearchParams(location.search).get('perf')
 
-// No throwaway WebGL context to sniff the GPU (creating one stalls the page while the
-// GPU process starts up). Device hints pick the start level; the first real canvas
-// then reports its GPU through noteRenderer().
+export const quality = state
+export const gpu = () => gpuName
+export const webglApi = () => typeof window !== 'undefined' && !!(window.WebGL2RenderingContext || window.WebGLRenderingContext)
+
+function notify() {
+  document.documentElement.dataset.perf = state.features
+  subs.forEach((fn) => fn(state))
+}
+function setFeatures(f) {
+  if (locked || f === state.features) return
+  state.features = f
+  notify()
+}
+
+export function onQuality(fn) {
+  subs.add(fn)
+  return () => subs.delete(fn)
+}
+export function useQuality() {
+  const [s, set] = useState(() => ({ ...state }))
+  useEffect(() => onQuality((n) => set({ ...n })), [])
+  return s
+}
+
+// Device-pixel-ratio for a canvas of `kind` ('bg' | 'scene') right now.
+export function dprFor(kind, width = window.innerWidth, height = window.innerHeight) {
+  const f = state.features === 'static' ? 'low' : state.features
+  const device = Math.min(window.devicePixelRatio || 1, CAP[kind][f])
+  const budget = Math.sqrt(BUDGET[kind][f] / Math.max(1, width * height))
+  return Math.max(FLOOR[kind], Math.min(device, budget) * state.dprScale)
+}
+
+/* ---------- 1. capability → tier (no throwaway WebGL context: that stalls start-up) ---------- */
 function detect() {
-  if (forced in { high: 1, low: 1, static: 1 }) return { high: 0, low: 2, static: 4 }[forced]
-  if (!webglApi()) return 4
+  if (forced in { high: 1, low: 1, static: 1 }) return forced
+  if (!webglApi()) return 'static'
   const nav = navigator
-  if (nav.connection?.saveData) return 4
+  if (nav.connection?.saveData) return 'static'
   let weak = 0
   if ((nav.hardwareConcurrency || 8) <= 4) weak++
   if ((nav.deviceMemory || 8) <= 4) weak++
   // phones & tablets: high-DPR screens, small GPUs, batteries → start light
   if (matchMedia('(pointer: coarse)').matches) weak += 2
-  return weak >= 2 ? 2 : 0
+  return weak >= 2 ? 'low' : 'high'
 }
 
-export const webglApi = () => typeof window !== 'undefined' && !!(window.WebGL2RenderingContext || window.WebGLRenderingContext)
-
-const WEAK_GPU = /Mali-(4|T|G3|G5[12]|G57)|Adreno \(TM\) ([2-5]\d\d|6[0-1]\d)|PowerVR|Intel.*(HD Graphics|GMA)|Apple A(9|1[0-2])\b/i
+// Old / entry-level mobile and desktop GPUs. (Careful: plain "HD Graphics" would also
+// match modern Intel UHD/Iris laptops, which handle the full tier fine.)
+const WEAK_GPU = /Mali-(4\d\d|T\d|G3\d|G5[12]|G57)|Adreno \(TM\) ([2-5]\d\d|6[0-1]\d)\b|PowerVR|Intel\(R\) HD Graphics( [2-5]\d{3})?\b|Intel.*GMA|Apple A(9|1[0-2])\b/i
 const SOFTWARE_GPU = /swiftshader|llvmpipe|softpipe|basic render|software/i
 
-// Called with each canvas's real WebGL context; the first one refines the level.
+// The first real canvas reports its GPU (behind the intro, before anything is shown).
 export function noteRenderer(gl) {
   if (gpuName || forced) return
   try {
@@ -63,115 +108,97 @@ export function noteRenderer(gl) {
   } catch {
     gpuName = '?'
   }
-  if (SOFTWARE_GPU.test(gpuName)) apply(4)
-  else if (WEAK_GPU.test(gpuName) && state.level < 2) apply(2)
+  if (SOFTWARE_GPU.test(gpuName)) setFeatures('static')
+  else if (WEAK_GPU.test(gpuName) && state.features === 'high') setFeatures('low')
 }
 
-const state = { level: 0, features: 'high', dprScale: 1 }
-const subs = new Set()
-
-function apply(level) {
-  state.level = level
-  state.features = FEATURES[level]
-  state.dprScale = DPR_SCALE[level]
-  document.documentElement.dataset.perf = state.features
-  subs.forEach((fn) => fn(state))
+/* ---------- 2. resolution-only adaptation ---------- */
+let step = 0
+function setStep(n) {
+  step = n
+  state.dprScale = SCALES[n]
+  notify()
 }
 
-export const quality = state
-export const gpu = () => gpuName
-
-export function onQuality(fn) {
-  subs.add(fn)
-  return () => subs.delete(fn)
-}
-
-export function stepDown(reason = '') {
-  if (state.level >= 4) return
-  // an already-light device skips straight past the resolution-only step
-  apply(state.level === 0 && reason === 'severe' ? 2 : state.level + 1)
-}
-
-// Device-pixel-ratio for a canvas of `kind` ('bg' | 'scene') at the current level.
-export function dprFor(kind, width = window.innerWidth, height = window.innerHeight) {
-  const f = state.features === 'static' ? 'low' : state.features
-  const device = Math.min(window.devicePixelRatio || 1, CAP[kind][f])
-  const budget = Math.sqrt(BUDGET[kind][f] / Math.max(1, width * height))
-  return Math.max(FLOOR[kind], Math.min(device, budget) * state.dprScale)
-}
-
-export function useQuality() {
-  const [s, set] = useState(() => ({ ...state }))
-  useEffect(() => onQuality((n) => set({ ...n })), [])
-  return s
-}
-
-/* ---------- frame-time monitor ---------- */
-let started = false
 function monitor() {
   let last = 0
   let samples = []
-  let best = 1000 / 60
-  let strikes = 0
-  let windowStart = performance.now()
-  // ignore page-load work: judge only after the intro has gone (and a moment more)
-  let settleUntil = Infinity
-  splashDone.then(() => (settleUntil = performance.now() + 1200))
-  // one-off bursts (theme switch) are not a verdict on the device
-  addEventListener('perf:busy', () => {
-    settleUntil = Math.max(settleUntil, performance.now() + 1800)
+  let windowStart = 0
+  let cadence = Infinity // the browser's frame interval: refresh rate, or a cap (30 fps battery saver)
+  let late = 0 // consecutive janky windows
+  let calm = 0 // consecutive smooth windows
+  let changes = 0
+  let judgeFrom = Infinity // judge only after the intro, and never right after a known burst
+  const pause = (ms) => {
+    if (judgeFrom !== Infinity) judgeFrom = Math.max(judgeFrom, performance.now() + ms)
     samples = []
-    strikes = 0
+    late = 0
+  }
+  splashDone.then(() => (judgeFrom = performance.now() + 1500))
+  addEventListener('perf:busy', () => pause(2000)) // theme switch
+  addEventListener('resize', () => pause(1500))
+  document.addEventListener('visibilitychange', () => {
+    last = 0
+    pause(1500)
   })
 
-  const evaluate = () => {
-    const now = performance.now()
-    const sorted = samples.sort((a, b) => a - b)
+  const evaluate = (now) => {
+    const s = samples.sort((a, b) => a - b)
     samples = []
-    best = Math.min(best, sorted[Math.floor(sorted.length * 0.1)]) // ≈ the display's refresh interval
-    if (now < settleUntil || document.hidden) return
-    // trimmed mean: one-off hiccups (a GC, a decode) shouldn't cost quality
-    const kept = sorted.slice(0, Math.ceil(sorted.length * 0.94))
-    const mean = kept.reduce((a, b) => a + b, 0) / kept.length
-    const limit = Math.max(best * 1.3, 18.5)
-    const severe = mean > Math.max(best * 2.4, 38) // below ~25 fps
-    if (severe && state.level >= 2) {
-      // already on the light tier and still struggling: the CPU is the limit, and
-      // lower resolution won't help — go straight to plain HTML
-      apply(4)
-      return
+    if (s.length < 10) return
+    // learn the cadence from the fastest typical frames (the intro, idle moments);
+    // never aim above 60 fps — chasing 120 Hz would only blur the scenes
+    cadence = Math.max(1000 / 60, Math.min(cadence, s[Math.floor(s.length * 0.25)]))
+    if (now < judgeFrom || document.hidden) return
+    const share = s.filter((d) => d > cadence * 1.5 + 2).length / s.length
+    if (share > 0.3) {
+      late++
+      calm = 0
+    } else if (share < 0.06) {
+      calm++
+      late = 0
+    } else {
+      late = 0
+      calm = 0
     }
-    if (mean > limit) strikes += severe ? 2 : 1
-    else strikes = Math.max(0, strikes - 1)
-    if (strikes >= 2) {
-      stepDown(severe ? 'severe' : '')
-      strikes = 0
-      settleUntil = now + 2000 // give the new level time to take effect
+    if (changes >= 8) return // never ping-pong
+    if (late >= 2 && step < SCALES.length - 1) {
+      setStep(step + 1)
+      changes++
+      pause(2500)
+    } else if (calm >= 12 && step > 0) {
+      setStep(step - 1) // smooth again: sharpen back up
+      changes++
+      calm = 0
+      pause(2500)
     }
   }
 
   const frame = (ts) => {
     if (last) {
       const d = ts - last
-      if (d < 250) samples.push(d) // gaps above that are tab switches, not jank
+      if (d < 250) samples.push(d) // longer gaps are tab switches / one-off stalls, not cadence
     }
     last = ts
-    // judge in ~1 s windows (a slow device would otherwise take many seconds per window)
+    if (!windowStart) windowStart = ts
     if (samples.length >= 90 || (samples.length >= 12 && ts - windowStart > 1000)) {
-      evaluate()
+      evaluate(performance.now())
       windowStart = ts
     }
-    if (state.level < 4) requestAnimationFrame(frame)
+    requestAnimationFrame(frame)
   }
   requestAnimationFrame(frame)
 }
 
+let started = false
 export function initQuality() {
   if (started) return state
   started = true
-  apply(detect())
-  // a level forced with ?perf= stays put (for testing); otherwise watch real frames
-  if (state.level < 4 && !forced) monitor()
+  state.features = detect()
+  notify()
+  if (forced) locked = true
+  else splashDone.then(() => (locked = true))
+  if (!forced && state.features !== 'static') monitor()
   return state
 }
 
